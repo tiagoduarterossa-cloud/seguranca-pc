@@ -9,6 +9,7 @@ App offline para acompanhar vários trabalhos de segurança: checklist de config
 - Revisões mensal, semestral e anual por trabalho, com aviso de atraso.
 - 17 guias de resolução de problemas, com pesquisa, e a indicação de quando se resolve sozinho, quando é urgente e quando é caso para um profissional.
 - Exportar e importar tudo num ficheiro.
+- Assistente com IA (Claude), geral ou sobre um trabalho concreto. Precisa de internet e de uma chave da API da Anthropic, colada uma vez no iPhone.
 - O progresso da versão anterior passa automaticamente para o primeiro trabalho.
 
 ## Atualizar no GitHub Pages
@@ -30,3 +31,13 @@ App offline para acompanhar vários trabalhos de segurança: checklist de config
 - Exporta depois de cada revisão e guarda o ficheiro fora do iPhone. O ficheiro diz o estado de segurança de vários PCs, trata-o como confidencial.
 - Sempre que alterares um ficheiro, sobe a versão em sw.js (seg-pc-v3 para seg-pc-v4, e assim por diante).
 - Os avisos das revisões ficam na app Lembretes do iPhone.
+
+## Assistente IA
+
+- A chave cria-se em console.anthropic.com, API keys. Define lá um limite de gasto mensal.
+- A chave fica só no localStorage do iPhone, numa entrada separada. Não vai no ficheiro exportado nem no GitHub.
+- A página só consegue falar com o próprio site e com api.anthropic.com (Content-Security-Policy).
+- O que escreves no assistente sai do iPhone para a Anthropic. Só códigos e descrições genéricas.
+- A app bloqueia chaves de recuperação do BitLocker e pede confirmação se detetar email, telefone ou NIF.
+- A conversa não é guardada. Fechar a app apaga-a.
+- Se o iPhone for perdido, apaga a chave na consola da Anthropic.

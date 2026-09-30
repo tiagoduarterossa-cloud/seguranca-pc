@@ -6,6 +6,7 @@
 <title>Segurança do PC</title>
 <meta name="description" content="Checklist de configuração, revisões periódicas e resolução de problemas.">
 <meta name="robots" content="noindex, nofollow">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://api.anthropic.com; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -91,6 +92,15 @@ ol.steps li{margin:0 0 8px}
 input[type=file]{display:none}
 code{font:.88em ui-monospace,Menlo,Consolas,monospace;background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:0 4px;white-space:nowrap}
 button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn.wide{grid-column:1/-1}
+.chat{margin-bottom:14px}
+.msg{border-radius:12px;padding:11px 14px;margin-bottom:10px;white-space:pre-wrap;overflow-wrap:anywhere;max-width:92%}
+.msg.user{background:var(--accent);color:var(--surface);margin-left:auto}
+.msg.assistant{background:var(--surface);border:1px solid var(--line)}
+.msg.err{background:var(--latebg);color:var(--late)}
+.msg.wait{color:var(--muted)}
+textarea.ask,input.key{width:100%;font:400 1rem var(--sans);padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink)}
+textarea.ask{min-height:88px;resize:vertical;display:block}
 @media (max-width:480px){.summary{grid-template-columns:1fr}h1{font-size:1.6rem}}
 </style>
 </head>
@@ -323,7 +333,7 @@ function homeHTML(){
  var active=state.jobs.filter(function(j){return !j.archived}),arch=state.jobs.filter(function(j){return j.archived}),bk=backupStatus();
  active.sort(function(a,b){return jobReview(b).rank-jobReview(a).rank||a.code.localeCompare(b.code,'pt')});
  var h='<h1>Segurança do PC</h1><p class="lede">Os teus trabalhos, as revisões de cada um e o que fazer quando algo corre mal. Usa só códigos, nunca nomes.</p>';
- h+='<div class="actions"><button class="btn" id="new" data-act="new">Novo trabalho</button><button class="btn line" id="help" data-act="help">Resolver um problema</button></div>';
+ h+='<div class="actions"><button class="btn" id="new" data-act="new">Novo trabalho</button><button class="btn line" id="help" data-act="help">Resolver um problema</button><button class="btn line wide" id="ai" data-act="ai">Perguntar à IA</button></div>';
  h+='<p class="sect-t">Trabalhos ativos</p>';
  if(!active.length)h+='<div class="empty">Ainda não há trabalhos. Cria o primeiro com um código, por exemplo PC 01.</div>';
  active.forEach(function(j){h+=jobCard(j)});
@@ -368,7 +378,7 @@ function jobHTML(j){
   });
   h+='<p class="note">Sempre que mudar uma password importante, um disco ou o local do cofre, a carta de emergência é atualizada no mesmo dia.</p>';
  }
- h+='<div class="foot"><p class="sect-t">Este trabalho</p><div class="row"><button class="btn ghost" id="rename" data-act="rename">Mudar código</button><button class="btn ghost" id="arch" data-act="archive">'+(j.archived?'Reativar':'Arquivar')+'</button><button class="btn danger" id="del" data-act="delete">Apagar</button></div></div>';
+ h+='<div class="foot"><p class="sect-t">Este trabalho</p><div class="row"><button class="btn line" id="ai-job" data-act="ai-job">Perguntar à IA sobre este trabalho</button></div><div class="row"><button class="btn ghost" id="rename" data-act="rename">Mudar código</button><button class="btn ghost" id="arch" data-act="archive">'+(j.archived?'Reativar':'Arquivar')+'</button><button class="btn danger" id="del" data-act="delete">Apagar</button></div></div>';
  return h;
 }
 function helpHTML(){
@@ -385,7 +395,7 @@ function guidesHTML(){
   g.s.forEach(function(x){h+='<li>'+cmd(x)+'</li>'});
   h+='</ol>'+(g.n?'<div class="g-note">'+esc(g.n)+'</div>':'')+'</div></details>';
  });
- if(!n)h='<div class="empty">Nenhum guia encontrado. Se o problema não está aqui, descreve-o de forma genérica no teu Projeto de segurança no Claude, sem nomes nem dados.</div>';
+ if(!n)h='<div class="empty">Nenhum guia encontrado. Se o problema não está aqui, pergunta à IA no ecrã inicial, de forma genérica, sem nomes nem dados.</div>';
  return h;
 }
 
@@ -394,11 +404,117 @@ function render(){
  var h='<div class="wrap">';
  if(view.screen==='job'&&job())h+=jobHTML(job());
  else if(view.screen==='help')h+=helpHTML();
+ else if(view.screen==='ai')h+=aiHTML();
  else{view.screen='home';h+=homeHTML()}
  root.innerHTML=h+'</div>';
  if(fid){var el=document.getElementById(fid);if(el)el.focus({preventScroll:true})}
+ if(view.screen==='ai'){var ta=document.getElementById('ask');if(ta)ta.value=ai.draft}
 }
 function go(screen,id){view.screen=screen;view.jobId=id||null;if(screen!=='job')view.tab='config';render();window.scrollTo(0,0)}
+
+// ---------- Assistente IA ----------
+// A chave fica só neste dispositivo, numa entrada própria, e nunca entra na exportação.
+var AIKEY='seg-pc-ai-key',MODEL='claude-opus-5-5';
+var ai={jobId:null,sys:null,msgs:[],busy:false,draft:''};
+function getKey(){try{return localStorage.getItem(AIKEY)||''}catch(e){return ''}}
+function setKey(k){try{if(k)localStorage.setItem(AIKEY,k);else localStorage.removeItem(AIKEY);return true}catch(e){return false}}
+function appText(){
+ var t='CHECKLIST DE CONFIGURAÇÃO\n';
+ PHASES.forEach(function(p,pi){t+='Fase '+pi+'. '+p.t+'\n';p.items.forEach(function(i){t+='- '+i[1]+(i[3]?' (opcional)':'')+(i[2]?': '+i[2]:'')+'\n'})});
+ t+='\nREVISÕES\n';REVIEWS.forEach(function(r){t+=r.t+': '+r.items.map(function(i){return i[1]}).join('; ')+'\n'});
+ t+='\nGUIAS DE RESOLUÇÃO DE PROBLEMAS\n';
+ GUIDES.forEach(function(g){t+='\n'+g.t+' ['+LEVELS[g.l]+']\n';g.s.forEach(function(s,k){t+=(k+1)+'. '+s+'\n'});if(g.n)t+='Nota: '+g.n+'\n'});
+ return t;
+}
+function aiSystem(j){
+ var base='És o assistente da app Segurança do PC. Quem te usa configura e mantém a segurança de PCs de trabalho com Windows: BitLocker, Bitwarden, YubiKey, backups, comunicações e continuidade. Respondes em português de Portugal, de forma direta e prática, com passos numerados quando ajudar. Texto simples: sem tabelas nem cabeçalhos.\n\n'+
+  'Privacidade: os trabalhos identificam-se só por códigos. Nunca peças nomes, emails, NIF, moradas, passwords, PINs, chaves de recuperação nem códigos de 2FA. Se o utilizador escrever algum destes dados, diz-lhe para não o fazer, não o repitas e responde de forma genérica.\n\n'+
+  'Se a situação envolver ransomware, dados de clientes expostos ou risco de perder dados sem backup, diz claramente que é caso para um profissional e o que fazer entretanto. Se não tiveres a certeza de um passo concreto do Windows, diz isso em vez de inventar.\n\n'+
+  'O conteúdo da app, que deves usar como referência e manter coerente:\n\n'+appText();
+ var sys=[{type:'text',text:base,cache_control:{type:'ephemeral'}}];
+ if(j){
+  var feitos=[],falta=[];
+  PHASES.forEach(function(p){p.items.forEach(function(i){(j.done[i[0]]?feitos:falta).push(i[1]+(i[3]?' (opcional)':''))})});
+  var rv=REVIEWS.map(function(r){return r.t+': '+revStatus(j,r).txt}).join('; ');
+  sys.push({type:'text',text:'A conversa é sobre o trabalho com o código '+j.code+'.\nPassos feitos: '+(feitos.join('; ')||'nenhum')+'.\nPassos por fazer: '+(falta.join('; ')||'nenhum')+'.\nRevisões: '+rv+'.'});
+ }
+ return sys;
+}
+function aiStart(jobId){ai.jobId=jobId||null;var j=null;state.jobs.forEach(function(x){if(x.id===ai.jobId)j=x});ai.sys=aiSystem(j);ai.msgs=[];ai.draft=''}
+function msgText(m){if(typeof m.content==='string')return m.content;return m.content.filter(function(b){return b.type==='text'}).map(function(b){return b.text}).join('')}
+function aiHTML(){
+ var h='<button class="back" id="back" data-act="home">‹ Trabalhos</button><h1>Assistente</h1>';
+ if(!getKey()){
+  h+='<p class="lede">Perguntas sobre segurança, respondidas com base no conteúdo desta app.</p>';
+  h+='<div class="card"><h2>Chave da API</h2><p class="meta">Cria uma chave em console.anthropic.com, em API keys, e cola-a aqui. Fica guardada só neste iPhone, fora das cópias exportadas. Cada pergunta é paga à Anthropic pelo uso.</p>';
+  h+='<input class="key" id="key" type="password" placeholder="sk-ant-..." autocomplete="off" autocapitalize="off" spellcheck="false"><div class="row"><button class="btn" id="key-save" data-act="key-save">Guardar chave</button></div></div>';
+  h+='<p class="note">O que escreves no assistente sai do iPhone para a Anthropic. Usa só códigos e descrições genéricas, nunca nomes, passwords ou chaves.</p>';
+  return h;
+ }
+ var j=null;state.jobs.forEach(function(x){if(x.id===ai.jobId)j=x});
+ h+='<p class="lede">'+(j?'Sobre o trabalho '+esc(j.code)+'. A IA vê o progresso deste trabalho, mais nada.':'Pergunta geral. A IA conhece a checklist e os guias desta app.')+' Nunca escrevas nomes, passwords nem chaves.</p>';
+ h+='<div class="chat" id="chat">';
+ if(!ai.msgs.length)h+='<div class="empty">Por exemplo: o PC pediu a chave do BitLocker depois de uma atualização, o que faço?</div>';
+ ai.msgs.forEach(function(m){h+='<div class="msg '+m.role+'">'+esc(msgText(m))+'</div>'});
+ h+='</div><textarea class="ask" id="ask" placeholder="Escreve a pergunta"'+(ai.busy?' disabled':'')+'></textarea>';
+ h+='<div class="row"><button class="btn" id="send" data-act="send"'+(ai.busy?' disabled':'')+'>Enviar</button><button class="btn ghost" id="ai-new" data-act="ai-new"'+(ai.busy?' disabled':'')+'>Nova conversa</button></div>';
+ h+='<div class="foot"><div class="row"><button class="btn danger" id="key-del" data-act="key-del">Remover chave</button></div></div>';
+ return h;
+}
+function sensitive(t){
+ if(/\b\d{6}(?:[-\s]\d{6}){7}\b/.test(t))return 'block';
+ if(/[^\s@]+@[^\s@]+\.[a-z]{2,}/i.test(t)||/(?:\+351[\s-]?)?\b9\d{2}[\s-]?\d{3}[\s-]?\d{3}\b/.test(t)||/\b[1-35689]\d{8}\b/.test(t)||/\bsk-ant-/i.test(t))return 'warn';
+ return '';
+}
+function chatEl(role,text){var c=document.getElementById('chat');if(!c)return null;var e=c.querySelector('.empty');if(e)e.remove();var d=document.createElement('div');d.className='msg '+role;d.textContent=text;c.appendChild(d);d.scrollIntoView({block:'end',behavior:'smooth'});return d}
+function aiSend(){
+ var ta=document.getElementById('ask'),q=(ta&&ta.value||'').trim();
+ if(!q||ai.busy)return;
+ var s=sensitive(q);
+ if(s==='block'){toast('Isto parece uma chave de recuperação do BitLocker. Não a envies.');return}
+ if(s==='warn'&&!confirm('A pergunta parece ter um email, telefone, NIF ou chave. Enviar mesmo assim?'))return;
+ if(!navigator.onLine){toast('Sem internet. O assistente precisa de rede, os guias funcionam offline.');return}
+ ai.msgs.push({role:'user',content:q});ai.draft='';ai.busy=true;render();
+ var out=chatEl('assistant wait','A pensar…');
+ var blocks=[],stop=null,textSoFar='';
+ function fail(msg){ai.msgs.pop();ai.draft=q;ai.busy=false;render();chatEl('err',msg)}
+ fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{
+   'content-type':'application/json','x-api-key':getKey(),'anthropic-version':'2023-06-01',
+   'anthropic-beta':'server-side-fallback-2026-07-01','anthropic-dangerous-direct-browser-access':'true'},
+  body:JSON.stringify({model:MODEL,max_tokens:16000,stream:true,fallbacks:'default',output_config:{effort:'medium'},system:ai.sys,messages:ai.msgs})
+ }).then(function(res){
+  if(!res.ok)return res.text().then(function(t){var m='';try{m=JSON.parse(t).error.message}catch(e){}
+   if(res.status===401)throw new Error('A chave foi recusada. Confirma-a ou cria outra na consola da Anthropic.');
+   if(res.status===429)throw new Error('Demasiados pedidos ou limite de gasto atingido. Tenta daqui a pouco.');
+   if(res.status===529||res.status>=500)throw new Error('O serviço está sobrecarregado. Tenta outra vez daqui a pouco.');
+   throw new Error('Erro '+res.status+(m?': '+m:''))});
+  var reader=res.body.getReader(),dec=new TextDecoder(),buf='';
+  function handle(ev){
+   if(ev.type==='content_block_start'){blocks[ev.index]=JSON.parse(JSON.stringify(ev.content_block))}
+   else if(ev.type==='content_block_delta'){var b=blocks[ev.index],d=ev.delta;if(!b)return;
+    if(d.type==='text_delta'){b.text=(b.text||'')+d.text;textSoFar+=d.text;if(out){out.className='msg assistant';out.textContent=textSoFar}}
+    else if(d.type==='thinking_delta')b.thinking=(b.thinking||'')+d.thinking;
+    else if(d.type==='signature_delta')b.signature=(b.signature||'')+d.signature}
+   else if(ev.type==='message_delta'&&ev.delta&&ev.delta.stop_reason)stop=ev.delta.stop_reason;
+   else if(ev.type==='error')throw new Error((ev.error&&ev.error.message)||'Erro durante a resposta.');
+  }
+  function pump(){return reader.read().then(function(r){
+   if(r.done)return;
+   buf+=dec.decode(r.value,{stream:true});
+   var parts=buf.split('\n\n');buf=parts.pop();
+   parts.forEach(function(p){p.split('\n').forEach(function(line){if(line.indexOf('data:')===0){var js=line.slice(5).trim();if(js)handle(JSON.parse(js))}})});
+   return pump();
+  })}
+  return pump();
+ }).then(function(){
+  if(stop==='refusal'){fail('A IA recusou responder a esta pergunta. Reformula-a de forma mais genérica.');return}
+  var content=blocks.filter(Boolean);
+  if(!content.length){fail('A resposta veio vazia. Tenta outra vez.');return}
+  ai.msgs.push({role:'assistant',content:content});ai.busy=false;render();
+  if(stop==='max_tokens')chatEl('err','A resposta foi cortada por ser demasiado longa. Pede para continuar.');
+  var c=document.getElementById('chat');if(c&&c.lastElementChild)c.lastElementChild.scrollIntoView({block:'end'});
+ }).catch(function(e){fail(e&&e.message&&e.name!=='TypeError'?e.message:'Não foi possível contactar a IA. Verifica a internet.')});
+}
 
 // ---------- Guardar, exportar, importar ----------
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(state));return true}catch(e){return false}}
@@ -454,7 +570,7 @@ root.addEventListener('change',function(e){
  if(t.dataset.step){if(t.checked)j.done[t.dataset.step]=today();else delete j.done[t.dataset.step];save()}
  else if(t.dataset.rev){var r=t.dataset.rev;j.revChecks[r]=j.revChecks[r]||{};if(t.checked)j.revChecks[r][t.dataset.ri]=true;else delete j.revChecks[r][t.dataset.ri];save()}
 });
-root.addEventListener('input',function(e){if(e.target.id==='q'){view.q=e.target.value;document.getElementById('guides').innerHTML=guidesHTML()}});
+root.addEventListener('input',function(e){if(e.target.id==='q'){view.q=e.target.value;document.getElementById('guides').innerHTML=guidesHTML()}else if(e.target.id==='ask')ai.draft=e.target.value});
 root.addEventListener('click',function(e){
  var b=e.target.closest('button');if(!b)return;
  var a=b.dataset.act,j=job();
@@ -467,10 +583,16 @@ root.addEventListener('click',function(e){
  else if(a==='rename'&&j){var c2=askCode(j.code);if(c2){j.code=c2;save()}}
  else if(a==='archive'&&j){j.archived=!j.archived;state.updated=Date.now();persist();toast(j.archived?'Trabalho arquivado':'Trabalho reativado');go('home')}
  else if(a==='delete'&&j){if(confirm('Apagar o trabalho '+j.code+' e todo o histórico? Não dá para desfazer.')){state.jobs=state.jobs.filter(function(x){return x.id!==j.id});state.updated=Date.now();persist();go('home');toast('Trabalho apagado')}}
+ else if(a==='ai'){if(ai.jobId!==null||!ai.sys)aiStart(null);go('ai')}
+ else if(a==='ai-job'&&j){if(ai.jobId!==j.id||!ai.sys)aiStart(j.id);go('ai')}
+ else if(a==='ai-new'){aiStart(ai.jobId);render()}
+ else if(a==='send')aiSend();
+ else if(a==='key-save'){var kv=(document.getElementById('key').value||'').trim();if(kv.indexOf('sk-ant-')!==0){toast('Isto não parece uma chave da Anthropic.');return}if(setKey(kv)){toast('Chave guardada neste iPhone');render()}else toast('Não foi possível guardar a chave.')}
+ else if(a==='key-del'){if(confirm('Remover a chave da API deste iPhone? A conversa atual também é apagada.')){setKey('');aiStart(ai.jobId);render();toast('Chave removida')}}
  else if(a==='export')exportData();
  else if(a==='import')document.getElementById('file').click();
 });
-document.addEventListener('visibilitychange',function(){if(!document.hidden&&view.screen!=='help')render()});
+document.addEventListener('visibilitychange',function(){if(!document.hidden&&view.screen!=='help'&&!(view.screen==='ai'&&ai.busy))render()});
 
 render();
 if(navigator.storage&&navigator.storage.persist){navigator.storage.persist().catch(function(){})}
