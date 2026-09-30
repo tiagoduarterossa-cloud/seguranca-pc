@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Segurança do PC</title>
+<meta name="description" content="Checklist de configuração, revisões periódicas e resolução de problemas.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Segurança PC">
+<meta name="theme-color" content="#F3F5F8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F1522" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<style>
+:root{--bg:#F3F5F8;--surface:#FFFFFF;--ink:#16223A;--muted:#5C6A80;--line:#DCE2EA;--accent:#1F4E8C;--ok:#2E7D5B;--okbg:#E4F2EB;--warn:#94600F;--warnbg:#FBF0DC;--late:#B0343F;--latebg:#F8E3E5;--serif:ui-serif,"New York",Georgia,serif;--sans:-apple-system,system-ui,"Segoe UI",Roboto,sans-serif}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0F1522;--surface:#172033;--ink:#E6EBF3;--muted:#9AA7BC;--line:#2A3650;--accent:#8FB3EA;--ok:#6CC79C;--okbg:#16362A;--warn:#E6B25A;--warnbg:#3A2C12;--late:#EC8A93;--latebg:#3E1D22}}
+:root[data-theme="dark"]{--bg:#0F1522;--surface:#172033;--ink:#E6EBF3;--muted:#9AA7BC;--line:#2A3650;--accent:#8FB3EA;--ok:#6CC79C;--okbg:#16362A;--warn:#E6B25A;--warnbg:#3A2C12;--late:#EC8A93;--latebg:#3E1D22}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.55 var(--sans);-webkit-text-size-adjust:100%}
+.wrap{max-width:720px;margin:0 auto;padding:22px 18px 64px}
+h1{font:600 1.85rem/1.2 var(--serif);margin:0 0 6px;letter-spacing:-.01em;overflow-wrap:anywhere}
+h2{font:600 1.15rem/1.3 var(--serif);margin:0}
+.lede{color:var(--muted);margin:0 0 20px;max-width:60ch}
+.back{appearance:none;background:none;border:0;color:var(--accent);font:600 1rem var(--sans);padding:6px 0;margin:0 0 8px;cursor:pointer}
+.summary{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.sum{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.k{font-size:.85rem;color:var(--muted)}
+.v{font:600 1.15rem/1.3 var(--serif);margin-top:2px}
+.bar{height:6px;background:var(--line);border-radius:3px;margin-top:10px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok);border-radius:3px}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px}
+.btn{appearance:none;border:1px solid var(--accent);background:var(--accent);color:var(--surface);font:600 .95rem var(--sans);padding:11px 14px;border-radius:9px;cursor:pointer;text-align:center}
+.btn.line{background:transparent;color:var(--accent)}
+.btn.ghost{background:transparent;color:var(--muted);border-color:var(--line)}
+.btn.danger{background:transparent;color:var(--late);border-color:var(--late)}
+.btn:disabled{opacity:.45;cursor:default}
+.sect-t{font-size:.85rem;color:var(--muted);font-weight:600;margin:0 0 8px}
+.job{display:block;width:100%;text-align:left;appearance:none;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px;cursor:pointer;color:var(--ink);font:inherit}
+.job .top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.job .code{font:600 1.1rem/1.3 var(--serif);overflow-wrap:anywhere}
+.job .pc{font-size:.9rem;color:var(--muted);white-space:nowrap}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:18px;color:var(--muted);text-align:center}
+.st{display:inline-block;font-size:.85rem;font-weight:600;padding:3px 10px;border-radius:999px;margin-top:8px}
+.st.ok{background:var(--okbg);color:var(--ok)}
+.st.warn{background:var(--warnbg);color:var(--warn)}
+.st.late{background:var(--latebg);color:var(--late)}
+.st.neutral{background:var(--bg);color:var(--muted);border:1px solid var(--line)}
+.tag{display:inline-block;font-size:.75rem;font-weight:600;color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:0 6px;margin-left:6px;vertical-align:2px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:18px}
+.tabs button{appearance:none;background:none;border:0;border-bottom:3px solid transparent;color:var(--muted);font:600 1rem var(--sans);padding:10px 12px;cursor:pointer;margin-bottom:-1px}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+details.box{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+details.box>summary{list-style:none;cursor:pointer;padding:14px 16px;display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+details.box>summary::-webkit-details-marker{display:none}
+.ph-t{font:600 1.05rem/1.3 var(--serif)}
+.ph-c{font-size:.9rem;color:var(--muted);white-space:nowrap}
+.ph-c.full{color:var(--ok)}
+ul.items{list-style:none;margin:0;padding:0 16px 8px}
+ul.items li{border-top:1px solid var(--line);padding:11px 0}
+label.it{display:grid;grid-template-columns:24px 1fr;gap:10px;cursor:pointer}
+label.it input{width:20px;height:20px;margin:2px 0 0;accent-color:var(--ok)}
+.it .tx{font-weight:600}
+.it.done .tx{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--line)}
+.it .dt{display:block;color:var(--muted);font-size:.9rem;margin-top:2px}
+.it .when{display:block;color:var(--ok);font-size:.85rem;margin-top:2px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:12px}
+.card ul.items{padding:0}
+.meta{color:var(--muted);font-size:.9rem;margin:6px 0}
+.note{border-left:3px solid var(--accent);padding:4px 0 4px 14px;color:var(--muted);margin:20px 0}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.foot{margin-top:28px;padding-top:16px;border-top:1px solid var(--line)}
+.search{width:100%;font:400 1rem var(--sans);padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);margin-bottom:16px}
+.cat{font-size:.85rem;color:var(--muted);font-weight:600;margin:18px 0 8px}
+.g-t{font-weight:600;line-height:1.35}
+.g-body{padding:0 16px 14px}
+ol.steps{margin:0;padding-left:1.3em}
+ol.steps li{margin:0 0 8px}
+.g-note{background:var(--bg);border-radius:8px;padding:10px 12px;font-size:.92rem;margin-top:10px}
+.lvl{flex-shrink:0;font-size:.75rem;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.lvl.tu{background:var(--okbg);color:var(--ok)}
+.lvl.urgente{background:var(--warnbg);color:var(--warn)}
+.lvl.pro{background:var(--latebg);color:var(--late)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:.95rem;max-width:90vw;z-index:10}
+@media (prefers-reduced-motion:no-preference){.toast{animation:t .2s ease-out}@keyframes t{from{opacity:0;transform:translate(-50%,8px)}}}
+input[type=file]{display:none}
+code{font:.88em ui-monospace,Menlo,Consolas,monospace;background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:0 4px;white-space:nowrap}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:480px){.summary{grid-template-columns:1fr}h1{font-size:1.6rem}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+(function(){
+// ---------- Conteúdo ----------
+// [id, texto, detalhe, opcional]
+var PHASES=[
+ {t:'Preparação',items:[
+  ['p0a','Confirmar a edição do Windows','Definições, Sistema, Acerca de. O BitLocker completo precisa do Windows Pro.'],
+  ['p0h','Confirmar que o TPM 2.0 está ativo','Escreve tpm.msc no menu Iniciar. Se não encontrar TPM, ativa-o na BIOS (aparece como TPM, fTPM ou Intel PTT).'],
+  ['p0i','Ver se o disco já está encriptado','Linha de comandos como administrador: manage-bde -status. Muitos PCs com Windows 11 já vêm encriptados, com a chave guardada na conta Microsoft.'],
+  ['p0b','Fazer um backup completo antes de mexer em tudo','Para um disco externo. Sem isto não se avança.']]},
+ {t:'Contas',items:[
+  ['p1a','Comprar duas YubiKeys','Uma principal e uma de reserva.'],
+  ['p1b','Criar duas contas no Bitwarden, uma profissional e uma pessoal','O acesso de emergência dá acesso à conta inteira, por isso a separação tem de ser feita com contas diferentes.'],
+  ['p1c','Definir a password mestra de cada conta','Frase de 5 ou 6 palavras aleatórias, usada só ali. Escrita no kit de emergência em papel.'],
+  ['p1d','Mudar as passwords importantes','Email, banco e portais profissionais. Uma diferente para cada, gerada pelo gestor.'],
+  ['p1e','Ativar o 2FA com a YubiKey principal','Onde não der, app autenticadora. SMS só em último caso.'],
+  ['p1f','Registar a YubiKey de reserva nos mesmos serviços',''],
+  ['p1g','Imprimir os códigos de recuperação do 2FA','Email, gestor de passwords e banco, no mínimo.']]},
+ {t:'Sistema',items:[
+  ['p2a','Criar conta de administrador separada','Usada só para instalar programas.'],
+  ['p2b','Passar a trabalhar numa conta padrão',''],
+  ['p2c','Ligar as atualizações automáticas',''],
+  ['p2d','Ativar o Acesso controlado a pastas','Segurança do Windows, Proteção contra vírus e ameaças, Gerir proteção contra ransomware.'],
+  ['p2e','Pôr password na BIOS/UEFI','Escrita no envelope das chaves.'],
+  ['p2f','Confirmar que o Secure Boot está ativo','Escreve msinfo32 no menu Iniciar e procura Estado do Arranque Seguro.'],
+  ['p2g','Bloqueio automático do ecrã aos 2 minutos','']]},
+ {t:'BitLocker',items:[
+  ['p3a','Definir XTS-AES 256 nas políticas','O AES 128 padrão já é seguro. Só funciona se for definido antes de encriptar. gpedit.msc, Componentes do Windows, Encriptação de Unidade BitLocker.',1],
+  ['p3b','Ativar a autenticação adicional no arranque','gpedit.msc, mesma pasta, Unidades do Sistema Operativo. Permitir PIN com TPM.'],
+  ['p3c','Ativar o BitLocker no disco C com PIN','PIN de 8 ou mais dígitos. Se o disco já estava encriptado, basta adicionar o PIN: manage-bde -protectors -add C: -TPMAndPIN como administrador.'],
+  ['p3d','Imprimir a chave de recuperação','Gerir BitLocker, Fazer cópia de segurança da chave. Confirma que está legível antes de reiniciar.'],
+  ['p3j','Apagar a chave da conta Microsoft','Só depois de a cópia em papel estar confirmada. account.microsoft.com/devices/recoverykey. Troca conveniência por privacidade.',1],
+  ['p3e','Guardar a chave no cofre','']]},
+ {t:'Contentor para processos sensíveis',items:[
+  ['p4a','Instalar o VeraCrypt','',1],
+  ['p4b','Criar o contentor encriptado','Passphrase diferente da do Windows, escrita em papel.',1],
+  ['p4c','Mover os processos mais sensíveis para dentro','Montar só quando precisa, desmontar no fim.',1]]},
+ {t:'Backups',items:[
+  ['p5a','Encriptar dois discos externos com BitLocker To Go',''],
+  ['p5b','Fazer o primeiro backup em cada disco','Com o Histórico de Ficheiros do Windows ou copiando as pastas de trabalho. Os discos só ficam ligados durante o backup.'],
+  ['p5c','Levar um dos discos para fora do escritório',''],
+  ['p5d','Configurar backup na cloud com versões','Ficheiros encriptados antes de subir, por exemplo com o Cryptomator.',1],
+  ['p5e','Testar um restauro','Recuperar um ficheiro a sério e abri-lo.']]},
+ {t:'Comunicações',items:[
+  ['p6a','Criar conta Proton Mail para documentos de clientes','Alternativa: PDF com password, enviada por outra via.',1],
+  ['p6b','Instalar o Signal',''],
+  ['p6c','Deixar de enviar documentos por WhatsApp','']]},
+ {t:'Continuidade',items:[
+  ['p7a','Escolher as duas pessoas designadas','Um colega advogado para o profissional, um familiar para o pessoal. Ambos de acordo.'],
+  ['p7c','Configurar o acesso de emergência em cada conta do Bitwarden','Precisa do Premium em cada conta. Espera de 7 dias. Conta profissional para o colega, pessoal para o familiar.'],
+  ['p7d','Escrever a carta de emergência','Sem passwords. Onde está cada coisa, quem contactar, prazos em curso.'],
+  ['p7e','Envelope das chaves no cofre e segunda cópia noutro local',''],
+  ['p7f','Configurar o contacto de legado nas contas pessoais','Apple, Google, Microsoft.',1],
+  ['p7g','Confirmar com a Ordem como se indica um colega substituto',''],
+  ['p7h','Referir o plano no testamento','',1]]}
+];
+var REVIEWS=[
+ {id:'mensal',t:'Revisão mensal',months:1,items:[
+  ['m1','Confirmar que as atualizações do Windows correram'],
+  ['m2','Testar o restauro de um ficheiro do backup'],
+  ['m3','Trocar o disco de backup pelo outro'],
+  ['m4','Ver sessões ativas e regras de reencaminhamento do email']]},
+ {id:'semestral',t:'Revisão semestral',months:6,items:[
+  ['s1','Confirmar que o acesso de emergência continua ativo'],
+  ['s2','Verificar se as chaves em papel estão legíveis'],
+  ['s3','Testar a YubiKey de reserva'],
+  ['s4','Confirmar que a carta de emergência está atualizada']]},
+ {id:'anual',t:'Revisão anual',months:12,items:[
+  ['a1','Teste real do acesso de emergência com a pessoa designada'],
+  ['a2','Confirmar que as pessoas designadas continuam as mesmas'],
+  ['a3','Renovar subscrições e rever custos'],
+  ['a4','Rever o plano todo, ou pedir revisão a um profissional']]}
+];
+var LEVELS={tu:'Resolves tu',urgente:'Urgente',pro:'Chama um profissional'};
+var GUIDES=[
+ {c:'Arranque e BitLocker',t:'O PC pede a chave de recuperação do BitLocker',l:'tu',s:[
+  'Não reinicies em ciclo nem tentes adivinhar. Costuma acontecer depois de atualizar a BIOS, mudar definições do arranque ou ligar uma doca ou disco no arranque.',
+  'Desliga pens, discos e docas e reinicia uma vez. Às vezes resolve.',
+  'No ecrã aparece um ID da chave. Procura no envelope a chave com o mesmo ID e introduz os 48 dígitos.',
+  'Já no Windows, abre a Linha de comandos como administrador, corre manage-bde -protectors -disable C: e reinicia. Depois corre manage-bde -protectors -enable C:. O TPM volta a ficar associado e o pedido deixa de aparecer.',
+  'Se não encontrares a chave em papel, tenta account.microsoft.com/devices/recoverykey com a conta Microsoft do dono do PC.'],
+  n:'Sem a chave, os dados do disco estão perdidos. A solução passa a ser reinstalar o Windows e restaurar o backup.'},
+ {c:'Arranque e BitLocker',t:'Esqueceu o PIN do BitLocker',l:'tu',s:[
+  'No ecrã do PIN, carrega em Esc para entrar na recuperação e usa a chave de 48 dígitos.',
+  'No Windows, com a conta de administrador, abre Gerir BitLocker e escolhe Repor um PIN esquecido.',
+  'Se a carta de emergência referir o PIN, atualiza-a.']},
+ {c:'Arranque e BitLocker',t:'Vai atualizar a BIOS ou mudar definições do arranque',l:'tu',s:[
+  'Antes de começar, abre Gerir BitLocker e escolhe Suspender proteção.',
+  'Faz a atualização ou a alteração, com a chave de recuperação à mão.',
+  'Depois do reinício, confirma em Gerir BitLocker que a proteção está ativa. Se não estiver, escolhe Retomar proteção.']},
+ {c:'Arranque e BitLocker',t:'Não consigo ativar o BitLocker com PIN',l:'tu',s:[
+  'Erro a dizer que falta TPM: em tpm.msc confirma que está pronto. Se não estiver, ativa TPM, fTPM ou Intel PTT na BIOS.',
+  'Não aparece a opção de PIN: a política Exigir autenticação adicional no arranque não está ativa. Ativa-a, corre gpupdate /force como administrador e tenta de novo.',
+  'Se o Windows for Home, não tem BitLocker completo. É preciso o upgrade para Pro.']},
+ {c:'Contas e passwords',t:'Perdeu uma YubiKey',l:'tu',s:[
+  'Entra nos serviços com a YubiKey de reserva.',
+  'Em cada serviço, remove a chave perdida da lista de chaves de segurança. Começa pelo email e pelo gestor de passwords.',
+  'Compra uma nova e regista-a em todos os serviços, para voltares a ter duas.',
+  'Se perdeu as duas, usa os códigos de recuperação em papel e regista chaves novas logo a seguir.'],
+  n:'Sozinha, a chave não chega para entrar em lado nenhum. Quem a encontrar precisa também das passwords.'},
+ {c:'Contas e passwords',t:'Esqueceu a password mestra do Bitwarden',l:'tu',s:[
+  'O Bitwarden não a consegue recuperar. Foi desenhado assim.',
+  'Vai ao kit de emergência em papel, onde deve estar escrita.',
+  'Se não estiver em lado nenhum, a conta está perdida. Cria uma nova e recupera cada serviço pelo processo de esqueci a password, começando pelo email.',
+  'Escreve a nova password mestra no kit e guarda-o no cofre.']},
+ {c:'Contas e passwords',t:'Clicou num link de um email suspeito',l:'urgente',s:[
+  'Se só abriu a página e não escreveu nada, fecha-a e corre uma análise completa no Windows Defender.',
+  'Se escreveu a password, muda-a já a partir de outro dispositivo e termina todas as sessões dessa conta.',
+  'Confirma que o 2FA continua igual e que o email e o telefone de recuperação não foram alterados.',
+  'No email, vê as regras e o reencaminhamento. Um atacante costuma criar regras que enviam cópias para fora ou apagam respostas.',
+  'Se descarregou e abriu um ficheiro, segue o guia da mensagem de resgate ou do Defender.']},
+ {c:'Contas e passwords',t:'Suspeita que o email foi invadido',l:'urgente',s:[
+  'Sinais: emails enviados que ninguém escreveu, respostas que desaparecem, avisos de início de sessão noutros países.',
+  'Muda a password a partir de outro dispositivo e termina todas as sessões.',
+  'Revê regras, reencaminhamento, aplicações ligadas à conta e dados de recuperação. Apaga o que não reconheces.',
+  'Avisa os contactos, sobretudo clientes, de que podem ter recebido emails falsos. Pedidos de pagamento por email confirmam-se sempre por telefone.'],
+  n:'Se havia emails de clientes na conta, segue também o guia sobre dados de clientes expostos.'},
+ {c:'Vírus e ransomware',t:'Mensagem de resgate ou ficheiros ilegíveis',l:'pro',s:[
+  'Desliga o PC da rede já: Wi-Fi desligado e cabo fora. Não o desligues da corrente sem indicação de um profissional.',
+  'Não ligues nenhum disco de backup a este PC.',
+  'Fotografa o ecrã com o telemóvel.',
+  'Não pagues nem respondas aos atacantes.',
+  'Chama um profissional de cibersegurança e faz participação à Polícia Judiciária.',
+  'O restauro só se faz depois de o PC ser limpo ou reinstalado, a partir de um backup que estava desligado.'],
+  n:'Com dados de clientes envolvidos, segue também o guia sobre dados de clientes expostos.'},
+ {c:'Vírus e ransomware',t:'O Windows Defender detetou uma ameaça',l:'tu',s:[
+  'Deixa o ficheiro em quarentena. Não o restaures.',
+  'Corre uma análise completa: Segurança do Windows, Proteção contra vírus e ameaças, Opções de análise.',
+  'Se a ameaça voltar, na mesma página escolhe Análise offline do Microsoft Defender. O PC reinicia e analisa antes de o Windows arrancar.',
+  'Se continuar a aparecer, chama um profissional.']},
+ {c:'Vírus e ransomware',t:'Um programa de trabalho deixou de conseguir guardar ficheiros',l:'tu',s:[
+  'Normalmente é o Acesso controlado a pastas a bloquear. Aparece um aviso do Defender.',
+  'Segurança do Windows, Proteção contra vírus e ameaças, Gerir proteção contra ransomware, Permitir uma aplicação através do Acesso controlado a pastas.',
+  'Adiciona só programas que conheces e que vieram de fonte oficial.']},
+ {c:'Backups e dados',t:'O backup falhou ou o disco não aparece',l:'tu',s:[
+  'Os discos com BitLocker To Go pedem a password quando são ligados. Se o pedido não aparecer, abre o Explorador e clica duas vezes no disco.',
+  'Experimenta outra porta USB e outro cabo.',
+  'Abre a Gestão de Discos (botão direito no menu Iniciar). Se o disco aparece sem letra, atribui uma. Se não aparece de todo, pode estar avariado.',
+  'Se avariou, passa a usar o segundo disco e compra outro logo. Até lá tens só uma cópia.']},
+ {c:'Backups e dados',t:'O PC avariou ou não arranca',l:'tu',s:[
+  'Os dados estão nos backups. Antes de tentar salvar o disco, confirma que o backup está bom.',
+  'Num PC novo ou reparado, repete as fases de Contas, Sistema e BitLocker antes de restaurar os dados.',
+  'Liga o disco de backup, desbloqueia-o com a password e copia os ficheiros de volta.',
+  'Se o disco antigo tiver dados que não estão no backup, precisas da chave de recuperação do BitLocker para os ler noutro PC. Aqui vale a pena um profissional.']},
+ {c:'Backups e dados',t:'O contentor VeraCrypt não abre',l:'tu',s:[
+  'Confirma o idioma do teclado. A mesma passphrase escrita num teclado inglês e num português pode dar resultados diferentes.',
+  'Se disser que o ficheiro está em uso, clica em Desmontar tudo e tenta de novo.',
+  'Se a password está certa e continua sem abrir, o ficheiro pode estar danificado. Restaura o contentor a partir do backup.',
+  'Nunca experimentes reparações no único exemplar. Trabalha sempre numa cópia.']},
+ {c:'Perda, roubo e dados expostos',t:'O portátil foi roubado ou perdido',l:'urgente',s:[
+  'Se estava desligado e com BitLocker e PIN, o disco está protegido.',
+  'Mesmo assim, muda as passwords das contas que estavam abertas e termina todas as sessões no email e no gestor de passwords.',
+  'Remove o dispositivo da conta Microsoft e de outros serviços onde apareça.',
+  'Faz participação à polícia, para o seguro e como registo.',
+  'Anota a data, as circunstâncias e se estava desligado ou só suspenso. Conta para decidir se é preciso notificar a CNPD.']},
+ {c:'Perda, roubo e dados expostos',t:'Dados de clientes podem ter sido expostos',l:'pro',s:[
+  'É uma violação de dados pessoais ao abrigo do RGPD. Havendo risco para as pessoas, a CNPD tem de ser notificada em 72 horas a contar do conhecimento (artigo 33).',
+  'Se os dados estavam encriptados e a chave não foi comprometida, o risco pode ser considerado baixo. A decisão e a justificação ficam sempre por escrito.',
+  'Regista o que aconteceu, quando, que dados, quantas pessoas e o que foi feito.',
+  'Se o risco for elevado, os próprios clientes também têm de ser informados (artigo 34).',
+  'A decisão é do advogado responsável, idealmente com apoio de um profissional. A Ordem dos Advogados pode orientar.']},
+ {c:'Continuidade',t:'A pessoa designada precisa de aceder',l:'tu',s:[
+  'Abre a carta de emergência. Diz onde está cada coisa e o que fazer primeiro.',
+  'No Bitwarden, pede o acesso de emergência. Se o dono não recusar em 7 dias, o acesso é libertado.',
+  'Enquanto esperas, trata do urgente com o que a carta indica, como prazos judiciais e contacto com a Ordem.',
+  'O envelope das chaves só se abre se for mesmo preciso para aceder ao PC ou aos backups.',
+  'O colega advogado trata só da parte profissional e a família só da pessoal.']}
+];
+
+// ---------- Estado ----------
+var KEY='seg-pc-state-v2',OLDKEY='seg-pc-state-v1';
+var root=document.getElementById('root');
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function newJob(code){return {id:uid(),code:code,created:today(),archived:false,done:{},revChecks:{},revLast:{}}}
+function normJob(j){return {id:j.id||uid(),code:String(j.code||'Sem código').slice(0,24),created:j.created||today(),archived:!!j.archived,done:j.done||{},revChecks:j.revChecks||{},revLast:j.revLast||{}}}
+function norm(s){s=s||{};return {version:2,jobs:(s.jobs||[]).map(normJob),lastExport:s.lastExport||null,updated:s.updated||0}}
+function fromV1(o){var j=newJob('Trabalho 1');j.done=o.done||{};j.revChecks=o.revChecks||{};j.revLast=o.revLast||{};return j}
+var state=norm({});
+try{
+ var raw=localStorage.getItem(KEY);
+ if(raw)state=norm(JSON.parse(raw));
+ else{var old=localStorage.getItem(OLDKEY);if(old){var o=JSON.parse(old);if(Object.keys(o.done||{}).length||Object.keys(o.revLast||{}).length){state.jobs.push(fromV1(o));state.lastExport=o.lastExport||null;persist()}}}
+}catch(e){}
+var view={screen:'home',jobId:null,tab:'config',q:''};
+
+// ---------- Utilidades ----------
+function pad(n){return (n<10?'0':'')+n}
+function today(){var d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+function parse(s){var p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2])}
+function fmt(s){var d=parse(s);return pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear()}
+function addMonths(s,m){var d=parse(s);var day=d.getDate();d.setDate(1);d.setMonth(d.getMonth()+m);var last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();d.setDate(Math.min(day,last));return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+function daysUntil(s){return Math.round((parse(s)-parse(today()))/86400000)}
+function cmd(s){return esc(s).replace(/(manage-bde -status|manage-bde -[a-z]+(?: -[a-z]+)? C:(?: -TPMAndPIN)?|gpupdate \/force|tpm\.msc|msinfo32|gpedit\.msc)/g,'<code>$1</code>')}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function job(){for(var i=0;i<state.jobs.length;i++)if(state.jobs[i].id===view.jobId)return state.jobs[i];return null}
+function plural(n,a,b){return n+(n===1?a:b)}
+
+function revStatus(j,r){
+ var last=j.revLast[r.id];
+ if(!last)return {cls:'neutral',txt:'Ainda não feita',next:null,days:null,rank:0};
+ var next=addMonths(last,r.months),d=daysUntil(next);
+ if(d<0)return {cls:'late',txt:'Atrasada '+plural(-d,' dia',' dias'),next:next,days:d,rank:3};
+ if(d===0)return {cls:'warn',txt:'É hoje',next:next,days:d,rank:2};
+ if(d<=7)return {cls:'warn',txt:'Faltam '+plural(d,' dia',' dias'),next:next,days:d,rank:2};
+ return {cls:'ok',txt:'Em dia, faltam '+d+' dias',next:next,days:d,rank:1};
+}
+function counts(j){var e=0,ed=0,o=0,od=0;PHASES.forEach(function(p){p.items.forEach(function(i){if(i[3]){o++;if(j.done[i[0]])od++}else{e++;if(j.done[i[0]])ed++}})});return {e:e,ed:ed,o:o,od:od}}
+function jobReview(j){
+ var best=null;
+ REVIEWS.forEach(function(r){var s=revStatus(j,r);if(s.next!==null&&(best===null||s.days<best.s.days))best={r:r,s:s}});
+ if(!best)return {cls:'neutral',txt:'Revisões por começar',rank:0,v:'Por marcar',k:'Regista a primeira revisão mensal quando acabares a configuração'};
+ var n=best.r.t.replace('Revisão ','');
+ return {cls:best.s.cls,txt:n.charAt(0).toUpperCase()+n.slice(1)+': '+best.s.txt.charAt(0).toLowerCase()+best.s.txt.slice(1),rank:best.s.rank,v:n.charAt(0).toUpperCase()+n.slice(1)+', '+fmt(best.s.next),k:best.s.txt};
+}
+function hasProgress(){return state.jobs.some(function(j){return Object.keys(j.done).length||Object.keys(j.revLast).length})}
+function backupStatus(){
+ if(!state.lastExport)return hasProgress()?{cls:'late',txt:'Ainda sem cópia'}:{cls:'neutral',txt:'Nada para copiar ainda'};
+ var ago=-daysUntil(state.lastExport);
+ if(ago>=30)return {cls:'warn',txt:'Última cópia há '+ago+' dias'};
+ return {cls:'ok',txt:'Última cópia a '+fmt(state.lastExport)};
+}
+
+// ---------- Ecrãs ----------
+function homeHTML(){
+ var active=state.jobs.filter(function(j){return !j.archived}),arch=state.jobs.filter(function(j){return j.archived}),bk=backupStatus();
+ active.sort(function(a,b){return jobReview(b).rank-jobReview(a).rank||a.code.localeCompare(b.code,'pt')});
+ var h='<h1>Segurança do PC</h1><p class="lede">Os teus trabalhos, as revisões de cada um e o que fazer quando algo corre mal. Usa só códigos, nunca nomes.</p>';
+ h+='<div class="actions"><button class="btn" id="new" data-act="new">Novo trabalho</button><button class="btn line" id="help" data-act="help">Resolver um problema</button></div>';
+ h+='<p class="sect-t">Trabalhos ativos</p>';
+ if(!active.length)h+='<div class="empty">Ainda não há trabalhos. Cria o primeiro com um código, por exemplo PC 01.</div>';
+ active.forEach(function(j){h+=jobCard(j)});
+ if(arch.length){h+='<details class="box" style="margin-top:14px"><summary><span class="ph-t">Arquivados</span><span class="ph-c">'+arch.length+'</span></summary><div style="padding:0 12px 4px">';arch.forEach(function(j){h+=jobCard(j)});h+='</div></details>'}
+ h+='<div class="card" style="margin-top:22px"><h2>Cópia do progresso</h2><span class="st '+bk.cls+'">'+esc(bk.txt)+'</span><p class="meta">Tudo existe só neste telemóvel. Exporta depois de cada revisão e guarda o ficheiro noutro sítio.</p>';
+ h+='<div class="row"><button class="btn" id="exp" data-act="export">Exportar tudo</button><button class="btn line" id="imp" data-act="import">Importar ficheiro</button></div><input type="file" id="file" accept="application/json,.json"></div>';
+ return h;
+}
+function jobCard(j){
+ var c=counts(j),pct=c.e?Math.round(c.ed/c.e*100):0,r=jobReview(j);
+ return '<button class="job" id="job-'+j.id+'" data-open="'+j.id+'"><span class="top"><span class="code">'+esc(j.code)+'</span><span class="pc">'+c.ed+'/'+c.e+' essenciais</span></span><span class="bar" style="display:block"><i style="width:'+pct+'%"></i></span><span class="st '+r.cls+'">'+esc(r.txt)+'</span></button>';
+}
+function jobHTML(j){
+ var c=counts(j),pct=c.e?Math.round(c.ed/c.e*100):0,nr=jobReview(j);
+ var h='<button class="back" id="back" data-act="home">‹ Trabalhos</button><h1>'+esc(j.code)+'</h1><p class="lede">Criado a '+fmt(j.created)+(j.archived?'. Arquivado.':'.')+'</p>';
+ h+='<div class="summary"><div class="sum"><div class="k">Essenciais</div><div class="v">'+c.ed+' de '+c.e+'</div><div class="bar"><i style="width:'+pct+'%"></i></div><div class="k" style="margin-top:6px">Opcionais: '+c.od+' de '+c.o+'</div></div>';
+ h+='<div class="sum"><div class="k">Próxima revisão</div><div class="v">'+esc(nr.v)+'</div><div class="k" style="margin-top:4px">'+esc(nr.k)+'</div></div></div>';
+ h+='<div class="tabs" role="tablist"><button id="tab-config" role="tab" data-tab="config" aria-selected="'+(view.tab==='config')+'">Configuração</button><button id="tab-rev" role="tab" data-tab="rev" aria-selected="'+(view.tab==='rev')+'">Revisões</button></div>';
+ if(view.tab==='config'){
+  PHASES.forEach(function(p,pi){
+   var ess=p.items.filter(function(i){return !i[3]}),d=0,dall=0;
+   p.items.forEach(function(i){if(j.done[i[0]]){dall++;if(!i[3])d++}});
+   var full=d===ess.length&&(ess.length>0||dall===p.items.length),allOpt=ess.length===0;
+   var label=allOpt?(dall+'/'+p.items.length+' opcionais'):(full?'Concluída':d+'/'+ess.length);
+   h+='<details class="box"'+(full?'':' open')+'><summary><span class="ph-t">Fase '+pi+'. '+esc(p.t)+'</span><span class="ph-c'+(full&&!allOpt?' full':'')+'">'+label+'</span></summary><ul class="items">';
+   p.items.forEach(function(i){
+    var w=j.done[i[0]];
+    h+='<li><label class="it'+(w?' done':'')+'"><input type="checkbox" id="c-'+i[0]+'" data-step="'+i[0]+'"'+(w?' checked':'')+'><span><span class="tx">'+esc(i[1])+'</span>'+(i[3]?'<span class="tag">Opcional</span>':'')+(i[2]?'<span class="dt">'+cmd(i[2])+'</span>':'')+(w?'<span class="when">Feito a '+fmt(w)+'</span>':'')+'</span></label></li>';
+   });
+   h+='</ul></details>';
+  });
+ }else{
+  REVIEWS.forEach(function(r){
+   var s=revStatus(j,r),ch=j.revChecks[r.id]||{},last=j.revLast[r.id],all=r.items.every(function(i){return ch[i[0]]});
+   h+='<section class="card"><h2>'+esc(r.t)+'</h2><span class="st '+s.cls+'">'+esc(s.txt)+'</span>';
+   h+='<p class="meta">'+(last?'Última a '+fmt(last)+'. Próxima a '+fmt(s.next)+'.':'Faz a primeira quando terminares a configuração.')+'</p><ul class="items">';
+   r.items.forEach(function(i){
+    var k=!!ch[i[0]];
+    h+='<li><label class="it'+(k?' done':'')+'"><input type="checkbox" id="r-'+i[0]+'" data-rev="'+r.id+'" data-ri="'+i[0]+'"'+(k?' checked':'')+'><span><span class="tx">'+esc(i[1])+'</span></span></label></li>';
+   });
+   h+='</ul><button class="btn" id="log-'+r.id+'" data-log="'+r.id+'"'+(all?'':' disabled')+'>Registar revisão feita hoje</button></section>';
+  });
+  h+='<p class="note">Sempre que mudar uma password importante, um disco ou o local do cofre, a carta de emergência é atualizada no mesmo dia.</p>';
+ }
+ h+='<div class="foot"><p class="sect-t">Este trabalho</p><div class="row"><button class="btn ghost" id="rename" data-act="rename">Mudar código</button><button class="btn ghost" id="arch" data-act="archive">'+(j.archived?'Reativar':'Arquivar')+'</button><button class="btn danger" id="del" data-act="delete">Apagar</button></div></div>';
+ return h;
+}
+function helpHTML(){
+ return '<button class="back" id="back" data-act="home">‹ Trabalhos</button><h1>Resolver um problema</h1><p class="lede">Escolhe o que está a acontecer. Cada guia diz se resolves tu, se é urgente ou se é caso para um profissional.</p><input class="search" id="q" type="search" placeholder="Procurar, por exemplo BitLocker, email, backup" value="'+esc(view.q)+'" autocomplete="off"><div id="guides">'+guidesHTML()+'</div>';
+}
+function guidesHTML(){
+ var q=view.q.trim().toLowerCase(),h='',cat=null,n=0;
+ GUIDES.forEach(function(g,gi){
+  var hay=(g.c+' '+g.t+' '+g.s.join(' ')+' '+(g.n||'')).toLowerCase();
+  if(q&&hay.indexOf(q)<0)return;
+  n++;
+  if(g.c!==cat){cat=g.c;h+='<p class="cat">'+esc(cat)+'</p>'}
+  h+='<details class="box" id="g-'+gi+'"><summary><span class="g-t">'+esc(g.t)+'</span><span class="lvl '+g.l+'">'+LEVELS[g.l]+'</span></summary><div class="g-body"><ol class="steps">';
+  g.s.forEach(function(x){h+='<li>'+cmd(x)+'</li>'});
+  h+='</ol>'+(g.n?'<div class="g-note">'+esc(g.n)+'</div>':'')+'</div></details>';
+ });
+ if(!n)h='<div class="empty">Nenhum guia encontrado. Se o problema não está aqui, descreve-o de forma genérica no teu Projeto de segurança no Claude, sem nomes nem dados.</div>';
+ return h;
+}
+
+function render(){
+ var fid=document.activeElement&&document.activeElement.id;
+ var h='<div class="wrap">';
+ if(view.screen==='job'&&job())h+=jobHTML(job());
+ else if(view.screen==='help')h+=helpHTML();
+ else{view.screen='home';h+=homeHTML()}
+ root.innerHTML=h+'</div>';
+ if(fid){var el=document.getElementById(fid);if(el)el.focus({preventScroll:true})}
+}
+function go(screen,id){view.screen=screen;view.jobId=id||null;if(screen!=='job')view.tab='config';render();window.scrollTo(0,0)}
+
+// ---------- Guardar, exportar, importar ----------
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(state));return true}catch(e){return false}}
+function save(){state.updated=Date.now();if(!persist())toast('Não foi possível guardar. Verifica o espaço livre.');render()}
+var tt=null;
+function toast(m){var o=document.querySelector('.toast');if(o)o.remove();var t=document.createElement('div');t.className='toast';t.setAttribute('role','status');t.textContent=m;document.body.appendChild(t);clearTimeout(tt);tt=setTimeout(function(){t.remove()},3200)}
+function askCode(current){
+ var v=prompt('Código do trabalho (sem nomes reais, até 24 caracteres):',current||'');
+ if(v===null)return null;
+ v=v.trim().slice(0,24);
+ if(!v){toast('O código não pode ficar vazio.');return null}
+ var clash=state.jobs.some(function(j){return j.code.toLowerCase()===v.toLowerCase()&&j.id!==view.jobId});
+ if(clash){toast('Já existe um trabalho com esse código.');return null}
+ return v;
+}
+function exportData(){
+ var payload={app:'seguranca-pc',version:2,exported:today(),state:state};
+ var name='seguranca-pc-'+today()+'.json',text=JSON.stringify(payload,null,1);
+ var done=function(){state.lastExport=today();save();toast('Cópia exportada')};
+ var file=null;try{file=new File([text],name,{type:'application/json'})}catch(e){}
+ if(file&&navigator.canShare&&navigator.canShare({files:[file]})){
+  navigator.share({files:[file],title:'Cópia do progresso'}).then(done).catch(function(err){if(!err||err.name!=='AbortError')download(text,name,done)});
+ }else download(text,name,done);
+}
+function download(text,name,cb){
+ var url=URL.createObjectURL(new Blob([text],{type:'application/json'}));
+ var a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();
+ setTimeout(function(){URL.revokeObjectURL(url)},4000);cb();
+}
+function importData(f){
+ var r=new FileReader();
+ r.onload=function(){
+  var obj;try{obj=JSON.parse(r.result)}catch(e){toast('Este ficheiro não é uma cópia válida.');return}
+  if(!obj||obj.app!=='seguranca-pc'||!obj.state){toast('Este ficheiro não é uma cópia desta app.');return}
+  var when=obj.exported?' de '+fmt(obj.exported):'';
+  if(obj.version===1||!obj.state.jobs){
+   if(!confirm('Esta cópia'+when+' é da versão antiga, com um só trabalho. Adicioná-la como trabalho novo?'))return;
+   var j=fromV1(obj.state),k=1;while(state.jobs.some(function(x){return x.code===j.code})){k++;j.code='Trabalho '+k}
+   state.jobs.push(j);save();toast('Trabalho importado');return;
+  }
+  if(!confirm('Substituir todos os trabalhos atuais pela cópia'+when+'?'))return;
+  var keep=state.lastExport;state=norm(obj.state);state.lastExport=state.lastExport||keep;view.screen='home';save();toast('Cópia importada');
+ };
+ r.onerror=function(){toast('Não foi possível ler o ficheiro.')};
+ r.readAsText(f);
+}
+
+// ---------- Eventos ----------
+root.addEventListener('change',function(e){
+ var t=e.target,j=job();
+ if(t.id==='file'){if(t.files&&t.files[0])importData(t.files[0]);t.value='';return}
+ if(!j)return;
+ if(t.dataset.step){if(t.checked)j.done[t.dataset.step]=today();else delete j.done[t.dataset.step];save()}
+ else if(t.dataset.rev){var r=t.dataset.rev;j.revChecks[r]=j.revChecks[r]||{};if(t.checked)j.revChecks[r][t.dataset.ri]=true;else delete j.revChecks[r][t.dataset.ri];save()}
+});
+root.addEventListener('input',function(e){if(e.target.id==='q'){view.q=e.target.value;document.getElementById('guides').innerHTML=guidesHTML()}});
+root.addEventListener('click',function(e){
+ var b=e.target.closest('button');if(!b)return;
+ var a=b.dataset.act,j=job();
+ if(b.dataset.open){view.tab='config';go('job',b.dataset.open)}
+ else if(b.dataset.tab){view.tab=b.dataset.tab;render()}
+ else if(b.dataset.log&&j){j.revLast[b.dataset.log]=today();j.revChecks[b.dataset.log]={};save();toast('Revisão registada')}
+ else if(a==='home')go('home');
+ else if(a==='help'){view.q='';go('help')}
+ else if(a==='new'){view.jobId=null;var c=askCode('');if(c){var nj=newJob(c);state.jobs.push(nj);state.updated=Date.now();persist();go('job',nj.id)}}
+ else if(a==='rename'&&j){var c2=askCode(j.code);if(c2){j.code=c2;save()}}
+ else if(a==='archive'&&j){j.archived=!j.archived;state.updated=Date.now();persist();toast(j.archived?'Trabalho arquivado':'Trabalho reativado');go('home')}
+ else if(a==='delete'&&j){if(confirm('Apagar o trabalho '+j.code+' e todo o histórico? Não dá para desfazer.')){state.jobs=state.jobs.filter(function(x){return x.id!==j.id});state.updated=Date.now();persist();go('home');toast('Trabalho apagado')}}
+ else if(a==='export')exportData();
+ else if(a==='import')document.getElementById('file').click();
+});
+document.addEventListener('visibilitychange',function(){if(!document.hidden&&view.screen!=='help')render()});
+
+render();
+if(navigator.storage&&navigator.storage.persist){navigator.storage.persist().catch(function(){})}
+if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}
+})();
+</script>
+</body>
+</html>
