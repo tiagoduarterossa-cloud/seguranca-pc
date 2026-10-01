@@ -7,6 +7,7 @@ App offline para acompanhar vários trabalhos de segurança: checklist de config
 - Vários trabalhos, cada um identificado só por um código (PC 01, Cliente A). Nunca nomes reais.
 - Checklist por fases, com os passos essenciais separados dos opcionais.
 - Nível de proteção por trabalho (baixo, médio, alto). O nível muda o que conta como essencial. Os trabalhos antigos ficam em médio, igual ao plano original.
+- Laboratório: guia para montar um Windows virtual (Hyper-V com TPM) e 10 exercícios para treinar sem risco, incluindo correr o verificar-pc.ps1 pela primeira vez. O progresso fica fora dos trabalhos.
 - Encriptação: comparação dos três níveis e 10 guias para ficheiros, emails, discos, cloud, apps e iPhone.
 - Revisões mensal, semestral e anual por trabalho, com aviso de atraso.
 - 17 guias de resolução de problemas, com pesquisa, e a indicação de quando se resolve sozinho, quando é urgente e quando é caso para um profissional.

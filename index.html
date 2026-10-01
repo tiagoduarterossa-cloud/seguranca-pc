@@ -358,7 +358,7 @@ var root=document.getElementById('root');
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
 function newJob(code){return {id:uid(),code:code,created:today(),archived:false,level:'m',done:{},revChecks:{},revLast:{}}}
 function normJob(j){return {id:j.id||uid(),code:String(j.code||'Sem código').slice(0,24),created:j.created||today(),archived:!!j.archived,level:LV.hasOwnProperty(j.level)?j.level:'m',done:j.done||{},revChecks:j.revChecks||{},revLast:j.revLast||{}}}
-function norm(s){s=s||{};return {version:2,jobs:(s.jobs||[]).map(normJob),lastExport:s.lastExport||null,updated:s.updated||0}}
+function norm(s){s=s||{};return {version:2,jobs:(s.jobs||[]).map(normJob),lastExport:s.lastExport||null,lab:s.lab||{},updated:s.updated||0}}
 function fromV1(o){var j=newJob('Trabalho 1');j.done=o.done||{};j.revChecks=o.revChecks||{};j.revLast=o.revLast||{};return j}
 var state=norm({});
 try{
@@ -375,7 +375,7 @@ function parse(s){var p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2])}
 function fmt(s){var d=parse(s);return pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear()}
 function addMonths(s,m){var d=parse(s);var day=d.getDate();d.setDate(1);d.setMonth(d.getMonth()+m);var last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();d.setDate(Math.min(day,last));return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
 function daysUntil(s){return Math.round((parse(s)-parse(today()))/86400000)}
-function cmd(s){return esc(s).replace(/(manage-bde -status|manage-bde -[a-z]+(?: -[a-z]+)? C:(?: -TPMAndPIN)?|gpupdate \/force|tpm\.msc|msinfo32|gpedit\.msc)/g,'<code>$1</code>')}
+function cmd(s){return esc(s).replace(/(manage-bde -status|manage-bde -[a-z]+(?: -[a-z]+)? C:(?: -TPMAndPIN)?|gpupdate \/force|tpm\.msc|msinfo32|gpedit\.msc|optionalfeatures)/g,'<code>$1</code>')}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function job(){for(var i=0;i<state.jobs.length;i++)if(state.jobs[i].id===view.jobId)return state.jobs[i];return null}
 function plural(n,a,b){return n+(n===1?a:b)}
@@ -410,7 +410,7 @@ function homeHTML(){
  var active=state.jobs.filter(function(j){return !j.archived}),arch=state.jobs.filter(function(j){return j.archived}),bk=backupStatus();
  active.sort(function(a,b){return jobReview(b).rank-jobReview(a).rank||a.code.localeCompare(b.code,'pt')});
  var h='<h1>Segurança do PC</h1><p class="lede">Os teus trabalhos, as revisões de cada um e o que fazer quando algo corre mal. Usa só códigos, nunca nomes.</p>';
- h+='<div class="actions"><button class="btn" id="new" data-act="new">Novo trabalho</button><button class="btn line" id="help" data-act="help">Resolver um problema</button><button class="btn line" id="ai" data-act="ai">Perguntar à IA</button><button class="btn line" id="enc" data-act="enc">Encriptação</button><button class="btn ghost wide" id="status" data-act="status">Estado da app</button></div>';
+ h+='<div class="actions"><button class="btn" id="new" data-act="new">Novo trabalho</button><button class="btn line" id="help" data-act="help">Resolver um problema</button><button class="btn line" id="ai" data-act="ai">Perguntar à IA</button><button class="btn line" id="enc" data-act="enc">Encriptação</button><button class="btn line" id="lab" data-act="lab">Laboratório</button><button class="btn ghost" id="status" data-act="status">Estado da app</button></div>';
  h+='<p class="sect-t">Trabalhos ativos</p>';
  if(!active.length)h+='<div class="empty">Ainda não há trabalhos. Cria o primeiro com um código, por exemplo PC 01.</div>';
  active.forEach(function(j){h+=jobCard(j)});
@@ -485,6 +485,7 @@ function render(){
  else if(view.screen==='ai')h+=aiHTML();
  else if(view.screen==='status')h+=statusHTML();
  else if(view.screen==='enc')h+=encHTML();
+ else if(view.screen==='lab')h+=labHTML();
  else{view.screen='home';h+=homeHTML()}
  root.innerHTML=h+'</div>';
  if(fid){var el=document.getElementById(fid);if(el)el.focus({preventScroll:true})}
@@ -526,6 +527,100 @@ function encHTML(){
  return h;
 }
 
+// ---------- Laboratório ----------
+// Treino num Windows virtual. O progresso fica em state.lab, fora dos trabalhos.
+var LAB=[
+ {id:'l0',g:'Montar o laboratório',t:'1. Preparar o PC',s:[
+  'O Hyper-V vem no Windows Pro. No Windows Home usa o VirtualBox 7, que também tem TPM 2.0 e Secure Boot.',
+  'Gestor de Tarefas, Desempenho, CPU: Virtualização tem de estar Ativada. Se não estiver, ativa Intel VT-x ou AMD-V na BIOS.',
+  'Precisas de 8 GB de RAM no mínimo, 16 GB de preferência, e uns 80 GB livres em disco.',
+  'Win+R, optionalfeatures, marca Hyper-V e reinicia.']},
+ {id:'l1',g:'Montar o laboratório',t:'2. Criar o Windows virtual',s:[
+  'Descarrega a ISO do Windows 11 em microsoft.com/software-download/windows11, na secção Transferir imagem de disco (ISO).',
+  'Gestor Hyper-V, Novo, Máquina virtual: Geração 2, 4096 MB de memória, rede Default Switch, disco de 64 GB, instalar a partir da ISO.',
+  'Antes de arrancar: Definições, Segurança, ativar Arranque Seguro e Ativar Trusted Platform Module. Em Processador, 2 processadores virtuais.',
+  'Instala o Windows 11 Pro. Não precisa de ser ativado para treinar.',
+  'Usa uma conta criada só para isto. Nada de contas, passwords ou ficheiros reais dentro do laboratório.'],
+  v:'O Windows arranca na janela do Hyper-V e tpm.msc mostra um TPM 2.0 pronto.'},
+ {id:'l2',g:'Montar o laboratório',t:'3. Criar o ponto de partida',s:[
+  'Com o Windows instalado e desligado, no Gestor Hyper-V: botão direito na máquina, Ponto de verificação. Chama-lhe Limpo.',
+  'Sempre que quiseres recomeçar, botão direito no ponto Limpo, Aplicar.',
+  'Para escrever o PIN do BitLocker no arranque, usa a ligação básica: no menu Ver, desliga a Sessão avançada.'],
+  v:'Tens um botão de desfazer para tudo o que vais fazer a seguir.'},
+ {id:'l3',g:'Exercícios',t:'BitLocker com PIN do princípio ao fim',s:[
+  'gpedit.msc, Componentes do Windows, Encriptação de Unidade BitLocker, Unidades do Sistema Operativo: ativa Exigir autenticação adicional no arranque e permite o PIN com TPM.',
+  'Se quiseres treinar o nível alto, define antes o XTS-AES 256 na mesma pasta.',
+  'Gerir BitLocker, Ativar o BitLocker, escolhe introduzir um PIN.',
+  'Na cópia da chave, imprime para Microsoft Print to PDF e copia também os 48 dígitos à mão para papel, como farias a sério.',
+  'Reinicia e escreve o PIN.'],
+  v:'Antes do Windows aparece um ecrã azul a pedir o PIN. manage-bde -status mostra Proteção Ativada.'},
+ {id:'l4',g:'Exercícios',t:'Forçar o ecrã de recuperação',s:[
+  'Linha de comandos como administrador: manage-bde -forcerecovery C: e reinicia.',
+  'No ecrã de recuperação, compara o ID da chave com o do teu papel e escreve os 48 dígitos.',
+  'Já no Windows, o TPM deixou de proteger o disco. Volta a pô-lo com manage-bde -protectors -add C: -TPMAndPIN.',
+  'Reinicia e confirma que volta a pedir só o PIN.'],
+  v:'Treinaste exatamente o guia O PC pede a chave de recuperação, sem pressão.'},
+ {id:'l5',g:'Exercícios',t:'Mudar e recuperar o PIN',s:[
+  'No ecrã do PIN, carrega em Esc para entrar pela chave de recuperação, como se o tivesses esquecido.',
+  'No Windows, como administrador: manage-bde -changepin C: e define um PIN novo.',
+  'Reinicia com o PIN novo.']},
+ {id:'l6',g:'Exercícios',t:'Suspender o BitLocker para atualizar a BIOS',s:[
+  'Gerir BitLocker, Suspender proteção.',
+  'Reinicia. Desta vez não pede PIN.',
+  'Depois do reinício, confirma em Gerir BitLocker que a proteção voltou sozinha. Se não, Retomar proteção.'],
+  v:'Percebes porque é que uma atualização da BIOS sem suspender acaba no ecrã de recuperação.'},
+ {id:'l7',g:'Exercícios',t:'Correr o script de verificação',s:[
+  'Dentro da máquina virtual, abre este site no browser e descarrega o verificar-pc.ps1 no ecrã Estado da app.',
+  'Corre-o antes de configurares seja o que for e guarda o resultado com uma fotografia.',
+  'Corre-o outra vez no fim dos exercícios, com -Nivel Medio e com -Nivel Alto.',
+  'Se algo aparecer marcado como ATENÇÃO sem razão, descreve-o ao assistente ou a quem mantém a app.'],
+  v:'O script passa de muitas falhas para poucas, e ficas a saber como se comporta antes de o usares num PC a sério.'},
+ {id:'l8',g:'Exercícios',t:'Conta padrão e proteção contra ransomware',s:[
+  'Cria uma segunda conta, padrão, em Definições, Contas, Outros utilizadores.',
+  'Entra nela e tenta instalar um programa. Tem de pedir a password do administrador.',
+  'Ativa o Acesso controlado a pastas na Segurança do Windows.',
+  'Com um programa que não seja da Microsoft, por exemplo o 7-Zip, tenta extrair um ficheiro para Documentos.'],
+  v:'Aparece um aviso de bloqueio. É o mesmo aviso que no PC real explica porque é que um programa deixou de gravar.'},
+ {id:'l9',g:'Exercícios',t:'Contentor VeraCrypt',s:[
+  'Instala o VeraCrypt e cria um contentor de 1 GB.',
+  'Monta-o, copia ficheiros de teste para dentro e desmonta-o.',
+  'Tenta abri-lo com a passphrase errada. Depois muda o teclado para inglês e vê se a passphrase com acentos ainda funciona.'],
+  v:'Percebes na prática porque é que a passphrase vai para o papel e porque o idioma do teclado importa.'},
+ {id:'l10',g:'Exercícios',t:'Backup e restauro num disco encriptado',s:[
+  'Com a máquina desligada: Definições, Controlador SCSI, Unidade de disco rígido, Novo, disco de 10 GB.',
+  'No Windows, Gestão de Discos: inicializa o disco novo e cria um volume.',
+  'Ativa o BitLocker To Go nesse disco, com password.',
+  'Configura o Histórico de Ficheiros para esse disco e faz uma cópia.',
+  'Apaga um ficheiro de Documentos e recupera-o.'],
+  v:'Fizeste o teste de restauro que o plano pede todos os meses.'},
+ {id:'l11',g:'Exercícios',t:'Alerta do Defender, sem perigo',s:[
+  'Em eicar.org há um ficheiro de teste que todos os antivírus tratam como vírus, mas que não faz nada.',
+  'Descarrega-o dentro da máquina virtual.',
+  'Segue o guia O Windows Defender detetou uma ameaça.'],
+  v:'O Defender bloqueia o ficheiro e põe-no em quarentena. Ficas a conhecer o aviso antes de ele aparecer a sério.'},
+ {id:'l12',g:'Exercícios',t:'Voltar ao início',s:[
+  'Desliga a máquina virtual.',
+  'Aplica o ponto de verificação Limpo.',
+  'Repete os exercícios de que tiveste mais dúvidas.'],
+  v:'A máquina volta ao estado de depois da instalação, como se nada tivesse acontecido.'}
+];
+function labHTML(){
+ var n=LAB.filter(function(x){return state.lab[x.id]}).length;
+ var h='<button class="back" id="back" data-act="home">‹ Trabalhos</button><h1>Laboratório</h1><p class="lede">Um Windows virtual dentro do teu PC, para treinares sem risco. Não conta para nenhum trabalho.</p>';
+ h+='<div class="sum" style="margin-bottom:16px"><div class="k">Progresso</div><div class="v">'+n+' de '+LAB.length+'</div><div class="bar"><i style="width:'+Math.round(n/LAB.length*100)+'%"></i></div></div>';
+ var g=null;
+ LAB.forEach(function(x){
+  if(x.g!==g){g=x.g;h+='<p class="cat">'+esc(g)+'</p>'}
+  var w=state.lab[x.id];
+  h+='<details class="box" id="lab-'+x.id+'"><summary><span class="g-t">'+esc(x.t)+'</span><span class="ph-c'+(w?' full':'')+'">'+(w?'Feito':'')+'</span></summary><div class="g-body"><ol class="steps">';
+  x.s.forEach(function(y){h+='<li>'+cmd(y)+'</li>'});
+  h+='</ol>'+(x.v?'<div class="g-note"><strong>O que deve acontecer:</strong> '+esc(x.v)+'</div>':'');
+  h+='<label class="it'+(w?' done':'')+'" style="margin-top:12px"><input type="checkbox" id="lc-'+x.id+'" data-lab="'+x.id+'"'+(w?' checked':'')+'><span><span class="tx">Feito</span>'+(w?'<span class="when">a '+fmt(w)+'</span>':'')+'</span></label></div></details>';
+ });
+ h+='<p class="note">Regra do laboratório: nunca uses lá contas, passwords ou ficheiros reais, e nunca reutilizes fora as passwords que lá criares.</p>';
+ return h;
+}
+
 // ---------- Assistente IA ----------
 // A chave fica só neste dispositivo, numa entrada própria, e nunca entra na exportação.
 var AIKEY='seg-pc-ai-key',MODEL='claude-opus-5-5';
@@ -538,6 +633,7 @@ function appText(){
  t+='\nREVISÕES\n';REVIEWS.forEach(function(r){t+=r.t+': '+r.items.map(function(i){return i[1]}).join('; ')+'\n'});
  t+='\nNÍVEIS DE PROTEÇÃO\n';NIVEIS.forEach(function(n){t+=LVNAME[n.k]+': '+n.quando+' Inclui: '+n.inclui.join('; ')+'. Protege contra: '+n.protege+' Limite: '+n.falha+'\n'});
  t+='\nGUIAS DE ENCRIPTAÇÃO DE FICHEIROS E APPS\n';ENC.forEach(function(g){t+='\n'+g.t+' [nível '+LVNAME[g.l].toLowerCase()+']\n';g.s.forEach(function(x,k){t+=(k+1)+'. '+x+'\n'});if(g.n)t+='Nota: '+g.n+'\n'});
+ t+='\nLABORATÓRIO (PC VIRTUAL PARA TREINO)\n';LAB.forEach(function(x){t+='\n'+x.t+'\n'+x.s.map(function(y,k){return (k+1)+'. '+y}).join('\n')+(x.v?'\nO que deve acontecer: '+x.v:'')+'\n'});
  t+='\nGUIAS DE RESOLUÇÃO DE PROBLEMAS\n';
  GUIDES.forEach(function(g){t+='\n'+g.t+' ['+LEVELS[g.l]+']\n';g.s.forEach(function(s,k){t+=(k+1)+'. '+s+'\n'});if(g.n)t+='Nota: '+g.n+'\n'});
  return t;
@@ -768,6 +864,7 @@ function importData(f){
 root.addEventListener('change',function(e){
  var t=e.target,j=job();
  if(t.id==='file'){if(t.files&&t.files[0])importData(t.files[0]);t.value='';return}
+ if(t.dataset.lab){if(t.checked)state.lab[t.dataset.lab]=today();else delete state.lab[t.dataset.lab];save();return}
  if(!j)return;
  if(t.dataset.step){if(t.checked)j.done[t.dataset.step]=today();else delete j.done[t.dataset.step];save()}
  else if(t.dataset.rev){var r=t.dataset.rev;j.revChecks[r]=j.revChecks[r]||{};if(t.checked)j.revChecks[r][t.dataset.ri]=true;else delete j.revChecks[r][t.dataset.ri];save()}
@@ -790,6 +887,7 @@ root.addEventListener('click',function(e){
  else if(a==='ai'){if(ai.jobId!==null||!ai.sys)aiStart(null);go('ai')}
  else if(a==='status'){go('status');runStatus()}
  else if(a==='enc')go('enc');
+ else if(a==='lab')go('lab');
  else if(a==='status-run')runStatus();
  else if(a==='ai-job'&&j){if(ai.jobId!==j.id||!ai.sys)aiStart(j.id);go('ai')}
  else if(a==='ai-new'){aiStart(ai.jobId);render()}
