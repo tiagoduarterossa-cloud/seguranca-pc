@@ -9,6 +9,7 @@ App offline para acompanhar vários trabalhos de segurança: checklist de config
 - Revisões mensal, semestral e anual por trabalho, com aviso de atraso.
 - 17 guias de resolução de problemas, com pesquisa, e a indicação de quando se resolve sozinho, quando é urgente e quando é caso para um profissional.
 - Exportar e importar tudo num ficheiro.
+- Estado da app: diagnóstico do modo offline, versão, gravação dos dados, cópias, revisões atrasadas e chave da IA (o teste da chave não gasta crédito).
 - Assistente com IA (Claude), geral ou sobre um trabalho concreto. Precisa de internet e de uma chave da API da Anthropic, colada uma vez no iPhone.
 - O progresso da versão anterior passa automaticamente para o primeiro trabalho.
 

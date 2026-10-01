@@ -333,7 +333,7 @@ function homeHTML(){
  var active=state.jobs.filter(function(j){return !j.archived}),arch=state.jobs.filter(function(j){return j.archived}),bk=backupStatus();
  active.sort(function(a,b){return jobReview(b).rank-jobReview(a).rank||a.code.localeCompare(b.code,'pt')});
  var h='<h1>Segurança do PC</h1><p class="lede">Os teus trabalhos, as revisões de cada um e o que fazer quando algo corre mal. Usa só códigos, nunca nomes.</p>';
- h+='<div class="actions"><button class="btn" id="new" data-act="new">Novo trabalho</button><button class="btn line" id="help" data-act="help">Resolver um problema</button><button class="btn line wide" id="ai" data-act="ai">Perguntar à IA</button></div>';
+ h+='<div class="actions"><button class="btn" id="new" data-act="new">Novo trabalho</button><button class="btn line" id="help" data-act="help">Resolver um problema</button><button class="btn line" id="ai" data-act="ai">Perguntar à IA</button><button class="btn ghost" id="status" data-act="status">Estado da app</button></div>';
  h+='<p class="sect-t">Trabalhos ativos</p>';
  if(!active.length)h+='<div class="empty">Ainda não há trabalhos. Cria o primeiro com um código, por exemplo PC 01.</div>';
  active.forEach(function(j){h+=jobCard(j)});
@@ -405,6 +405,7 @@ function render(){
  if(view.screen==='job'&&job())h+=jobHTML(job());
  else if(view.screen==='help')h+=helpHTML();
  else if(view.screen==='ai')h+=aiHTML();
+ else if(view.screen==='status')h+=statusHTML();
  else{view.screen='home';h+=homeHTML()}
  root.innerHTML=h+'</div>';
  if(fid){var el=document.getElementById(fid);if(el)el.focus({preventScroll:true})}
@@ -516,6 +517,89 @@ function aiSend(){
  }).catch(function(e){fail(e&&e.message&&e.name!=='TypeError'?e.message:'Não foi possível contactar a IA. Verifica a internet.')});
 }
 
+// ---------- Estado da app ----------
+var stat={running:false,rows:null,when:null};
+function row(t,cls,txt,d){return {t:t,cls:cls,txt:txt,d:d||''}}
+function safe(p,t){return Promise.resolve().then(p).catch(function(){return row(t,'warn','Não foi possível verificar','Tenta outra vez.')})}
+function swInfo(){return new Promise(function(res){
+ var c=navigator.serviceWorker&&navigator.serviceWorker.controller;if(!c)return res(null);
+ var ch=new MessageChannel(),done=false;ch.port1.onmessage=function(e){done=true;res(e.data)};
+ c.postMessage({type:'info'},[ch.port2]);setTimeout(function(){if(!done)res(null)},2500);
+})}
+function checkMode(){
+ var sa=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
+ return sa?row('Modo de abertura','ok','App instalada','Os dados ficam na app do ecrã principal.'):row('Modo de abertura','warn','Aberta no navegador','No iPhone, o Safari e a app instalada guardam os dados em sítios diferentes. Usa sempre o ícone.');
+}
+function checkOffline(){
+ var T='Funciona sem rede';
+ if(!('serviceWorker' in navigator)||!window.caches)return row(T,'late','Não suportado','Este navegador não permite o modo offline.');
+ return swInfo().then(function(info){
+  if(!info)return row(T,'late','Não preparada','Abre a app uma vez com internet, espera uns segundos e volta a verificar.');
+  return caches.open(info.cache).then(function(c){return Promise.all(info.assets.map(function(a){return c.match(a)}))}).then(function(rs){
+   var miss=rs.filter(function(r){return !r}).length,v=String(info.cache).replace('seg-pc-','');
+   return miss?row(T,'warn',plural(miss,' ficheiro em falta',' ficheiros em falta'),'Abre a app com internet para completar. Versão '+v+'.'):row(T,'ok','Pronta',info.assets.length+' ficheiros guardados no iPhone. Versão '+v+'.');
+  });
+ });
+}
+function checkUpdate(){
+ var T='Atualizações';
+ if(!navigator.onLine)return row(T,'neutral','Sem rede','Liga a internet para verificar.');
+ if(!('serviceWorker' in navigator))return row(T,'neutral','Não suportado','');
+ return navigator.serviceWorker.getRegistration().then(function(reg){
+  if(!reg)return row(T,'warn','Por instalar','Abre a app com internet e volta a verificar.');
+  return reg.update().then(function(){
+   return (reg.installing||reg.waiting)?row(T,'warn','Versão nova a instalar','Fecha a app e volta a abri-la daqui a uns segundos.'):row(T,'ok','Em dia','Tens a versão mais recente.');
+  });
+ });
+}
+function checkStorage(){
+ var T='Gravação dos dados',ok=false;
+ try{localStorage.setItem('seg-pc-test','1');ok=localStorage.getItem('seg-pc-test')==='1';localStorage.removeItem('seg-pc-test')}catch(e){}
+ if(!ok)return row(T,'late','Não grava','O iPhone não está a deixar guardar. Verifica o espaço livre.');
+ var n=plural(state.jobs.length,' trabalho guardado',' trabalhos guardados')+' neste dispositivo.';
+ if(!(navigator.storage&&navigator.storage.estimate))return row(T,'ok','A gravar',n);
+ return navigator.storage.estimate().then(function(e){return row(T,'ok','A gravar',n+(e&&e.usage?' Ocupa cerca de '+Math.max(1,Math.round(e.usage/1024))+' KB.':''))});
+}
+function checkBackup(){var b=backupStatus();return row('Cópia do progresso',b.cls,b.txt,b.cls==='ok'?'Exporta outra vez depois de cada revisão.':'Exporta em Cópia do progresso, no ecrã inicial, e guarda o ficheiro fora do iPhone.')}
+function checkReviews(){
+ var T='Revisões',act=state.jobs.filter(function(j){return !j.archived});
+ if(!act.length)return row(T,'neutral','Sem trabalhos ativos','');
+ var late=[],soon=[];
+ act.forEach(function(j){var r=jobReview(j);if(r.rank===3)late.push(j.code);else if(r.rank===2)soon.push(j.code)});
+ if(late.length)return row(T,'late',plural(late.length,' trabalho atrasado',' trabalhos atrasados'),late.join(', '));
+ if(soon.length)return row(T,'warn',plural(soon.length,' para esta semana',' para esta semana'),soon.join(', '));
+ return row(T,'ok','Em dia','Nenhuma revisão atrasada.');
+}
+function checkNet(){return navigator.onLine?row('Internet','ok','Ligada',''):row('Internet','neutral','Sem rede','A app funciona na mesma. Só o assistente e as atualizações precisam de rede.')}
+function checkAI(){
+ var T='Assistente IA',k=getKey();
+ if(!k)return row(T,'neutral','Sem chave','Para o usar, cola a chave em Perguntar à IA.');
+ if(!navigator.onLine)return row(T,'neutral','Sem rede','Chave guardada. O teste precisa de internet.');
+ // Consulta o modelo sem gerar texto: confirma chave e acesso sem gastar crédito.
+ return fetch('https://api.anthropic.com/v1/models/'+MODEL,{headers:{'x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'}}).then(function(r){
+  if(r.ok)return row(T,'ok','Operacional','Chave válida e modelo disponível. Confirma o saldo na consola da Anthropic, que este teste não o vê.');
+  if(r.status===401)return row(T,'late','Chave recusada','Cria uma chave nova na consola da Anthropic e substitui-a em Perguntar à IA.');
+  if(r.status===403)return row(T,'late','Sem permissão','A chave não tem acesso a este modelo.');
+  if(r.status===404)return row(T,'warn','Modelo indisponível','A conta não tem acesso ao modelo usado pela app.');
+  return row(T,'warn','Erro '+r.status,'Tenta outra vez mais tarde.');
+ },function(){return row(T,'warn','Sem ligação','Não foi possível contactar a Anthropic.')});
+}
+function runStatus(){
+ if(stat.running)return;stat.running=true;render();
+ var checks=[[checkMode,'Modo de abertura'],[checkOffline,'Funciona sem rede'],[checkUpdate,'Atualizações'],[checkStorage,'Gravação dos dados'],[checkBackup,'Cópia do progresso'],[checkReviews,'Revisões'],[checkNet,'Internet'],[checkAI,'Assistente IA']];
+ Promise.all(checks.map(function(c){return safe(c[0],c[1])})).then(function(rows){stat.rows=rows;stat.when=new Date();stat.running=false;if(view.screen==='status')render()});
+}
+function statusHTML(){
+ var h='<button class="back" id="back" data-act="home">‹ Trabalhos</button><h1>Estado da app</h1>';
+ if(!stat.rows||stat.running&&!stat.rows)return h+'<p class="lede">A verificar…</p>';
+ var bad=stat.rows.filter(function(r){return r.cls==='late'}).length,warn=stat.rows.filter(function(r){return r.cls==='warn'}).length;
+ var s=bad?{cls:'late',txt:plural(bad,' problema',' problemas')+(warn?' e '+plural(warn,' aviso',' avisos'):'')}:warn?{cls:'warn',txt:plural(warn,' aviso',' avisos')}:{cls:'ok',txt:'Tudo operacional'};
+ h+='<p class="lede">Verificado às '+pad(stat.when.getHours())+':'+pad(stat.when.getMinutes())+'.</p><div class="card"><h2>'+esc(s.txt)+'</h2><span class="st '+s.cls+'">'+(bad?'Precisa de atenção':warn?'Funciona, com avisos':'Pronta a usar')+'</span></div>';
+ stat.rows.forEach(function(r){h+='<div class="card"><div class="top" style="display:flex;justify-content:space-between;gap:10px;align-items:baseline"><span class="ph-t">'+esc(r.t)+'</span><span class="st '+r.cls+'" style="margin-top:0;white-space:nowrap">'+esc(r.txt)+'</span></div>'+(r.d?'<p class="meta" style="margin-bottom:0">'+esc(r.d)+'</p>':'')+'</div>'});
+ h+='<div class="row"><button class="btn" id="status-run" data-act="status-run"'+(stat.running?' disabled':'')+'>'+(stat.running?'A verificar…':'Verificar de novo')+'</button></div>';
+ return h;
+}
+
 // ---------- Guardar, exportar, importar ----------
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(state));return true}catch(e){return false}}
 function save(){state.updated=Date.now();if(!persist())toast('Não foi possível guardar. Verifica o espaço livre.');render()}
@@ -584,6 +668,8 @@ root.addEventListener('click',function(e){
  else if(a==='archive'&&j){j.archived=!j.archived;state.updated=Date.now();persist();toast(j.archived?'Trabalho arquivado':'Trabalho reativado');go('home')}
  else if(a==='delete'&&j){if(confirm('Apagar o trabalho '+j.code+' e todo o histórico? Não dá para desfazer.')){state.jobs=state.jobs.filter(function(x){return x.id!==j.id});state.updated=Date.now();persist();go('home');toast('Trabalho apagado')}}
  else if(a==='ai'){if(ai.jobId!==null||!ai.sys)aiStart(null);go('ai')}
+ else if(a==='status'){go('status');runStatus()}
+ else if(a==='status-run')runStatus();
  else if(a==='ai-job'&&j){if(ai.jobId!==j.id||!ai.sys)aiStart(j.id);go('ai')}
  else if(a==='ai-new'){aiStart(ai.jobId);render()}
  else if(a==='send')aiSend();
@@ -596,7 +682,11 @@ document.addEventListener('visibilitychange',function(){if(!document.hidden&&vie
 
 render();
 if(navigator.storage&&navigator.storage.persist){navigator.storage.persist().catch(function(){})}
-if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}
+if('serviceWorker' in navigator){
+ var hadSW=!!navigator.serviceWorker.controller;
+ navigator.serviceWorker.addEventListener('controllerchange',function(){if(hadSW)toast('Versão nova instalada. Fecha e reabre a app.');hadSW=true});
+ window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})});
+}
 })();
 </script>
 </body>

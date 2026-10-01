@@ -1,5 +1,5 @@
 // Mudar a versão sempre que alterares algum ficheiro, para o iPhone buscar a nova.
-const CACHE = 'seg-pc-v4';
+const CACHE = 'seg-pc-v5';
 const ASSETS = [
   './',
   './index.html',
@@ -20,6 +20,11 @@ self.addEventListener('activate', (e) => {
       .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
+});
+
+// O ecrã Estado da app pergunta a versão e a lista de ficheiros para confirmar o modo offline.
+self.addEventListener('message', (e) => {
+  if (e.data && e.data.type === 'info' && e.ports[0]) e.ports[0].postMessage({ cache: CACHE, assets: ASSETS });
 });
 
 self.addEventListener('fetch', (e) => {
