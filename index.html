@@ -91,6 +91,7 @@ ol.steps li{margin:0 0 8px}
 @media (prefers-reduced-motion:no-preference){.toast{animation:t .2s ease-out}@keyframes t{from{opacity:0;transform:translate(-50%,8px)}}}
 input[type=file]{display:none}
 code{font:.88em ui-monospace,Menlo,Consolas,monospace;background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:0 4px;white-space:nowrap}
+code.cmd{white-space:normal;overflow-wrap:anywhere;user-select:all;-webkit-user-select:all}
 button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .btn.wide{grid-column:1/-1}
 .chat{margin-bottom:14px}
@@ -596,6 +597,9 @@ function statusHTML(){
  var s=bad?{cls:'late',txt:plural(bad,' problema',' problemas')+(warn?' e '+plural(warn,' aviso',' avisos'):'')}:warn?{cls:'warn',txt:plural(warn,' aviso',' avisos')}:{cls:'ok',txt:'Tudo operacional'};
  h+='<p class="lede">Verificado às '+pad(stat.when.getHours())+':'+pad(stat.when.getMinutes())+'.</p><div class="card"><h2>'+esc(s.txt)+'</h2><span class="st '+s.cls+'">'+(bad?'Precisa de atenção':warn?'Funciona, com avisos':'Pronta a usar')+'</span></div>';
  stat.rows.forEach(function(r){h+='<div class="card"><div class="top" style="display:flex;justify-content:space-between;gap:10px;align-items:baseline"><span class="ph-t">'+esc(r.t)+'</span><span class="st '+r.cls+'" style="margin-top:0;white-space:nowrap">'+esc(r.txt)+'</span></div>'+(r.d?'<p class="meta" style="margin-bottom:0">'+esc(r.d)+'</p>':'')+'</div>'});
+ h+='<div class="card"><h2>Verificar o próprio PC</h2><p class="meta">Esta página não consegue ver o PC. Para isso há um script que só lê o estado do Windows: TPM, Secure Boot, BitLocker com PIN, conta padrão, Defender, firewall, atualizações. Não altera nada, não usa a internet e não mostra nomes nem chaves.</p>';
+ h+='<ol class="steps"><li>No PC, abre este endereço no browser e descarrega o script.</li><li>Botão direito no menu Iniciar, Terminal (Admin).</li><li>Escreve <code class="cmd">powershell -ExecutionPolicy Bypass -File "$env:USERPROFILE\\Downloads\\verificar-pc.ps1"</code></li></ol>';
+ h+='<div class="row"><a class="btn line" href="verificar-pc.ps1" download style="text-decoration:none">Descarregar script</a></div></div>';
  h+='<div class="row"><button class="btn" id="status-run" data-act="status-run"'+(stat.running?' disabled':'')+'>'+(stat.running?'A verificar…':'Verificar de novo')+'</button></div>';
  return h;
 }

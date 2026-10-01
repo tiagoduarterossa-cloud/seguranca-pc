@@ -10,6 +10,7 @@ App offline para acompanhar vários trabalhos de segurança: checklist de config
 - 17 guias de resolução de problemas, com pesquisa, e a indicação de quando se resolve sozinho, quando é urgente e quando é caso para um profissional.
 - Exportar e importar tudo num ficheiro.
 - Estado da app: diagnóstico do modo offline, versão, gravação dos dados, cópias, revisões atrasadas e chave da IA (o teste da chave não gasta crédito).
+- Script verificar-pc.ps1 para correr no próprio PC como administrador. Só lê: edição do Windows, TPM, Secure Boot, contas, Defender, Acesso controlado a pastas, firewall, atualizações, BitLocker com PIN e discos. Não altera nada nem mostra nomes ou chaves.
 - Assistente com IA (Claude), geral ou sobre um trabalho concreto. Precisa de internet e de uma chave da API da Anthropic, colada uma vez no iPhone.
 - O progresso da versão anterior passa automaticamente para o primeiro trabalho.
 
