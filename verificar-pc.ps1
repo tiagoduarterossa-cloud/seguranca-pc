@@ -21,6 +21,10 @@ function Need($min) { return $script:nv -ge @{ Baixo = 0; Medio = 1; Alto = 2 }[
 function Gap($min) { if (Need $min) { 'FALHA' } else { 'INFO' } }
 function Lv($min) { if (Need $min) { '' } else { " Essencial a partir do nível $($min.Replace('Medio','médio').ToLower())." } }
 
+function Get-SessionSid($conta) {
+    try { return (New-Object Security.Principal.NTAccount($conta)).Translate([Security.Principal.SecurityIdentifier]).Value } catch { return $null }
+}
+
 function Add-Result($fase, $item, $estado, $detalhe) {
     $script:res += [pscustomobject]@{ Fase = $fase; Item = $item; Estado = $estado; Detalhe = $detalhe }
 }
@@ -81,21 +85,26 @@ try {
         })
     }
     $sessao = (Get-CimInstance Win32_ComputerSystem).UserName
+    $sid = $null
+    if ($sessao) { $sid = Get-SessionSid $sessao }
     if (-not $sessao) {
         Add-Result 'Sistema' 'Conta de trabalho padrão' 'ATENÇÃO' 'Não há sessão aberta para confirmar.'
     } else {
-        $sid = (New-Object Security.Principal.NTAccount($sessao)).Translate([Security.Principal.SecurityIdentifier]).Value
         if ($admins -contains $sid) {
             Add-Result 'Sistema' 'Conta de trabalho padrão' (Gap 'Medio') ('A conta com sessão aberta é administradora. O trabalho diário deve ser feito numa conta padrão.' + (Lv 'Medio'))
         } else {
             Add-Result 'Sistema' 'Conta de trabalho padrão' 'OK' 'A conta com sessão aberta é padrão.'
         }
     }
-    $nAdm = @(Get-LocalUser | Where-Object { $_.Enabled -and ($admins -contains $_.SID.Value) }).Count
-    if ($nAdm -ge 1) {
-        Add-Result 'Sistema' 'Conta de administrador separada' 'OK' "$nAdm conta(s) local(is) de administrador ativa(s)."
+    # Administradores além da conta de trabalho: sem outro, passar esta a padrão deixa o PC sem administrador.
+    $outros = @(Get-LocalUser | Where-Object { $_.Enabled -and ($admins -contains $_.SID.Value) -and $_.SID.Value -ne $sid }).Count
+    $sessaoAdm = $sid -and ($admins -contains $sid)
+    if ($outros -ge 1) {
+        Add-Result 'Sistema' 'Conta de administrador separada' 'OK' "$outros conta(s) de administrador além da conta de trabalho."
+    } elseif ($sessaoAdm) {
+        Add-Result 'Sistema' 'Conta de administrador separada' (Gap 'Medio') ('A conta de trabalho é a única administradora. Cria primeiro outra conta de administrador e entra nela para testar; só depois passa a de trabalho a padrão, senão o PC fica sem administrador.' + (Lv 'Medio'))
     } else {
-        Add-Result 'Sistema' 'Conta de administrador separada' 'ATENÇÃO' 'Nenhuma conta local de administrador ativa. Pode ser uma conta Microsoft; confirma.'
+        Add-Result 'Sistema' 'Conta de administrador separada' 'ATENÇÃO' 'Nenhuma conta local de administrador ativa encontrada. Pode ser uma conta Microsoft; confirma.'
     }
 } catch { Add-Result 'Sistema' 'Contas' 'ATENÇÃO' 'Não foi possível ler as contas.' }
 
@@ -174,7 +183,9 @@ if (Need 'Medio') { Add-Result 'Sistema' 'Password na BIOS/UEFI' 'MANUAL' 'Não 
 try {
     $bl = Get-BitLockerVolume -MountPoint $env:SystemDrive
     $tipos = @($bl.KeyProtector | ForEach-Object { [string]$_.KeyProtectorType })
-    if ($bl.ProtectionStatus -ne 'On') {
+    if ($bl.ProtectionStatus -ne 'On' -and [string]$bl.VolumeStatus -eq 'FullyEncrypted') {
+        Add-Result 'BitLocker' 'Disco do sistema encriptado' 'FALHA' 'Encriptado, mas com a proteção suspensa: a chave está guardada no disco sem proteção, por isso na prática os dados estão abertos. Guarda e imprime a chave de recuperação e depois retoma com manage-bde -protectors -enable C:'
+    } elseif ($bl.ProtectionStatus -ne 'On') {
         Add-Result 'BitLocker' 'Disco do sistema encriptado' 'FALHA' "Proteção desligada ($($bl.VolumeStatus))."
     } else {
         Add-Result 'BitLocker' 'Disco do sistema encriptado' 'OK' "Protegido, $($bl.EncryptionPercentage)% encriptado."
