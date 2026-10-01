@@ -5,11 +5,21 @@
 
   Como correr (Windows 11):
     1. Botão direito no menu Iniciar, Terminal (Admin).
-    2. powershell -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\verificar-pc.ps1"
+    2. powershell -ExecutionPolicy Bypass -File "$env:USERPROFILE\Downloads\verificar-pc.ps1" -Nivel Medio
+
+  -Nivel Baixo, Medio ou Alto, igual ao nível do trabalho na app. Por defeito, Medio.
 #>
+param([ValidateSet('Baixo', 'Medio', 'Alto')][string]$Nivel = 'Medio')
 
 $ErrorActionPreference = 'Stop'
 $script:res = @()
+
+$script:nv = @{ Baixo = 0; Medio = 1; Alto = 2 }[$Nivel]
+
+# Falha só se o passo for essencial no nível escolhido; abaixo disso é informação.
+function Need($min) { return $script:nv -ge @{ Baixo = 0; Medio = 1; Alto = 2 }[$min] }
+function Gap($min) { if (Need $min) { 'FALHA' } else { 'INFO' } }
+function Lv($min) { if (Need $min) { '' } else { " Essencial a partir do nível $($min.Replace('Medio','médio').ToLower())." } }
 
 function Add-Result($fase, $item, $estado, $detalhe) {
     $script:res += [pscustomobject]@{ Fase = $fase; Item = $item; Estado = $estado; Detalhe = $detalhe }
@@ -76,7 +86,7 @@ try {
     } else {
         $sid = (New-Object Security.Principal.NTAccount($sessao)).Translate([Security.Principal.SecurityIdentifier]).Value
         if ($admins -contains $sid) {
-            Add-Result 'Sistema' 'Conta de trabalho padrão' 'FALHA' 'A conta com sessão aberta é administradora. O trabalho diário deve ser feito numa conta padrão.'
+            Add-Result 'Sistema' 'Conta de trabalho padrão' (Gap 'Medio') ('A conta com sessão aberta é administradora. O trabalho diário deve ser feito numa conta padrão.' + (Lv 'Medio'))
         } else {
             Add-Result 'Sistema' 'Conta de trabalho padrão' 'OK' 'A conta com sessão aberta é padrão.'
         }
@@ -124,7 +134,7 @@ try {
     } elseif ($cfa -eq 2) {
         Add-Result 'Sistema' 'Acesso controlado a pastas' 'ATENÇÃO' 'Só em modo de auditoria. Não bloqueia.'
     } else {
-        Add-Result 'Sistema' 'Acesso controlado a pastas' 'FALHA' 'Desligado.'
+        Add-Result 'Sistema' 'Acesso controlado a pastas' (Gap 'Medio') ('Desligado.' + (Lv 'Medio'))
     }
 } catch { Add-Result 'Sistema' 'Acesso controlado a pastas' 'ATENÇÃO' 'Não foi possível ler.' }
 
@@ -158,7 +168,7 @@ try {
     }
 } catch { Add-Result 'Sistema' 'Bloqueio automático do ecrã' 'MANUAL' 'Confirma à mão.' }
 
-Add-Result 'Sistema' 'Password na BIOS/UEFI' 'MANUAL' 'Não dá para confirmar a partir do Windows. Reinicia e entra na BIOS para testar.'
+if (Need 'Medio') { Add-Result 'Sistema' 'Password na BIOS/UEFI' 'MANUAL' 'Não dá para confirmar a partir do Windows. Reinicia e entra na BIOS para testar.' }
 
 # ---------- BitLocker ----------
 try {
@@ -172,12 +182,12 @@ try {
     if ([string]$bl.EncryptionMethod -match '256') {
         Add-Result 'BitLocker' 'Encriptação XTS-AES 256' 'OK' ([string]$bl.EncryptionMethod)
     } else {
-        Add-Result 'BitLocker' 'Encriptação XTS-AES 256 (opcional)' 'INFO' "Usa $($bl.EncryptionMethod). O AES 128 também é seguro."
+        Add-Result 'BitLocker' 'Encriptação XTS-AES 256' (Gap 'Alto') ("Usa $($bl.EncryptionMethod). O AES 128 também é seguro; mudar obriga a desencriptar e voltar a encriptar." + (Lv 'Alto'))
     }
     if ($tipos -contains 'TpmPin' -or $tipos -contains 'TpmPinStartupKey') {
         Add-Result 'BitLocker' 'PIN no arranque' 'OK' 'O arranque pede PIN.'
     } else {
-        Add-Result 'BitLocker' 'PIN no arranque' 'FALHA' 'O disco abre só com o TPM, sem PIN. Qualquer pessoa que ligue o PC chega ao ecrã de entrada.'
+        Add-Result 'BitLocker' 'PIN no arranque' (Gap 'Medio') ('O disco abre só com o TPM, sem PIN. Qualquer pessoa que ligue o PC chega ao ecrã de entrada.' + (Lv 'Medio'))
     }
     if ($tipos -contains 'RecoveryPassword') {
         Add-Result 'BitLocker' 'Chave de recuperação criada' 'OK' 'Existe. Confirma que a cópia em papel está no cofre.'
@@ -191,9 +201,9 @@ Add-Result 'BitLocker' 'Chave em papel no cofre' 'MANUAL' 'Confirma que está le
 # ---------- Contentor e backups ----------
 $vc = (Test-Path "$env:ProgramFiles\VeraCrypt\VeraCrypt.exe") -or (Test-Path "${env:ProgramFiles(x86)}\VeraCrypt\VeraCrypt.exe")
 if ($vc) {
-    Add-Result 'Contentor' 'VeraCrypt (opcional)' 'OK' 'Instalado.'
+    Add-Result 'Contentor' 'VeraCrypt' 'OK' 'Instalado.'
 } else {
-    Add-Result 'Contentor' 'VeraCrypt (opcional)' 'INFO' 'Não instalado.'
+    Add-Result 'Contentor' 'VeraCrypt' (Gap 'Alto') ('Não instalado.' + (Lv 'Alto'))
 }
 
 try {
@@ -216,7 +226,7 @@ Add-Result 'Backups' 'Restauro testado' 'MANUAL' 'Recupera um ficheiro a sério 
 $cores = @{ OK = 'Green'; FALHA = 'Red'; 'ATENÇÃO' = 'Yellow'; MANUAL = 'Cyan'; INFO = 'Gray' }
 Write-Host ''
 Write-Host 'Segurança do PC - verificação da instalação' -ForegroundColor White
-Write-Host ('Data: ' + (Get-Date -Format 'dd/MM/yyyy HH:mm'))
+Write-Host ('Data: ' + (Get-Date -Format 'dd/MM/yyyy HH:mm') + '   Nível: ' + $Nivel.Replace('Medio', 'Médio'))
 $fase = ''
 foreach ($r in $script:res) {
     if ($r.Fase -ne $fase) { $fase = $r.Fase; Write-Host ''; Write-Host $fase -ForegroundColor White }

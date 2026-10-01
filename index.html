@@ -94,6 +94,15 @@ code{font:.88em ui-monospace,Menlo,Consolas,monospace;background:var(--bg);borde
 code.cmd{white-space:normal;overflow-wrap:anywhere;user-select:all;-webkit-user-select:all}
 button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .btn.wide{grid-column:1/-1}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.seg button{appearance:none;border:0;border-left:1px solid var(--line);background:transparent;color:var(--muted);font:600 .95rem var(--sans);padding:10px 6px;cursor:pointer}
+.seg button:first-child{border-left:0}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--surface)}
+ul.plain{margin:6px 0 8px;padding-left:1.2em}
+ul.plain li{margin:0 0 4px}
+.lvl.nb{background:var(--okbg);color:var(--ok)}
+.lvl.nm{background:var(--warnbg);color:var(--warn)}
+.lvl.na{background:var(--latebg);color:var(--late)}
 .chat{margin-bottom:14px}
 .msg{border-radius:12px;padding:11px 14px;margin-bottom:10px;white-space:pre-wrap;overflow-wrap:anywhere;max-width:92%}
 .msg.user{background:var(--accent);color:var(--surface);margin-left:auto}
@@ -134,24 +143,25 @@ var PHASES=[
   ['p2f','Confirmar que o Secure Boot está ativo','Escreve msinfo32 no menu Iniciar e procura Estado do Arranque Seguro.'],
   ['p2g','Bloqueio automático do ecrã aos 2 minutos','']]},
  {t:'BitLocker',items:[
-  ['p3a','Definir XTS-AES 256 nas políticas','O AES 128 padrão já é seguro. Só funciona se for definido antes de encriptar. gpedit.msc, Componentes do Windows, Encriptação de Unidade BitLocker.',1],
+  ['p3k','Confirmar que o disco C está encriptado com BitLocker','Gerir BitLocker deve dizer BitLocker ativado. Se o disco já vinha encriptado de fábrica, conta.'],
+  ['p3a','Definir XTS-AES 256 nas políticas','O AES 128 padrão já é seguro. Só funciona se for definido antes de encriptar. gpedit.msc, Componentes do Windows, Encriptação de Unidade BitLocker.'],
   ['p3b','Ativar a autenticação adicional no arranque','gpedit.msc, mesma pasta, Unidades do Sistema Operativo. Permitir PIN com TPM.'],
   ['p3c','Ativar o BitLocker no disco C com PIN','PIN de 8 ou mais dígitos. Se o disco já estava encriptado, basta adicionar o PIN: manage-bde -protectors -add C: -TPMAndPIN como administrador.'],
   ['p3d','Imprimir a chave de recuperação','Gerir BitLocker, Fazer cópia de segurança da chave. Confirma que está legível antes de reiniciar.'],
-  ['p3j','Apagar a chave da conta Microsoft','Só depois de a cópia em papel estar confirmada. account.microsoft.com/devices/recoverykey. Troca conveniência por privacidade.',1],
+  ['p3j','Apagar a chave da conta Microsoft','Só depois de a cópia em papel estar confirmada. account.microsoft.com/devices/recoverykey. Troca conveniência por privacidade.'],
   ['p3e','Guardar a chave no cofre','']]},
  {t:'Contentor para processos sensíveis',items:[
-  ['p4a','Instalar o VeraCrypt','',1],
-  ['p4b','Criar o contentor encriptado','Passphrase diferente da do Windows, escrita em papel.',1],
-  ['p4c','Mover os processos mais sensíveis para dentro','Montar só quando precisa, desmontar no fim.',1]]},
+  ['p4a','Instalar o VeraCrypt',''],
+  ['p4b','Criar o contentor encriptado','Passphrase diferente da do Windows, escrita em papel.'],
+  ['p4c','Mover os processos mais sensíveis para dentro','Montar só quando precisa, desmontar no fim.']]},
  {t:'Backups',items:[
   ['p5a','Encriptar dois discos externos com BitLocker To Go',''],
   ['p5b','Fazer o primeiro backup em cada disco','Com o Histórico de Ficheiros do Windows ou copiando as pastas de trabalho. Os discos só ficam ligados durante o backup.'],
   ['p5c','Levar um dos discos para fora do escritório',''],
-  ['p5d','Configurar backup na cloud com versões','Ficheiros encriptados antes de subir, por exemplo com o Cryptomator.',1],
+  ['p5d','Configurar backup na cloud com versões','Ficheiros encriptados antes de subir, por exemplo com o Cryptomator.'],
   ['p5e','Testar um restauro','Recuperar um ficheiro a sério e abri-lo.']]},
  {t:'Comunicações',items:[
-  ['p6a','Criar conta Proton Mail para documentos de clientes','Alternativa: PDF com password, enviada por outra via.',1],
+  ['p6a','Criar conta Proton Mail para documentos de clientes','Alternativa: PDF com password, enviada por outra via.'],
   ['p6b','Instalar o Signal',''],
   ['p6c','Deixar de enviar documentos por WhatsApp','']]},
  {t:'Continuidade',items:[
@@ -181,6 +191,72 @@ var REVIEWS=[
   ['a4','Rever o plano todo, ou pedir revisão a um profissional']]}
 ];
 var LEVELS={tu:'Resolves tu',urgente:'Urgente',pro:'Chama um profissional'};
+// Nível a partir do qual cada passo é essencial. Sem entrada: essencial em todos os níveis.
+var ITEM_LEVEL={p1a:'m',p1f:'m',p2a:'m',p2b:'m',p2d:'m',p2e:'m',p3b:'m',p3c:'m',p5c:'m',p6b:'m',p6c:'m',p7a:'m',p7c:'m',p7g:'m',p3a:'a',p3j:'a',p4a:'a',p4b:'a',p4c:'a',p5d:'a',p6a:'a'};
+var LV={b:0,m:1,a:2},LVNAME={b:'Baixo',m:'Médio',a:'Alto'};
+var NIVEIS=[
+ {k:'b',quando:'PC pessoal, sem dados de clientes nem documentos sensíveis.',inclui:['Disco encriptado com BitLocker só com TPM, o que muitos PCs já trazem','Chave de recuperação impressa e guardada no cofre','Gestor de passwords e 2FA','Atualizações automáticas e Defender','Discos de backup encriptados com BitLocker To Go','Carta de emergência e envelope das chaves'],
+  protege:'Roubo do PC desligado e a maioria dos ataques comuns.',falha:'Quem apanhar o PC ligado ou suspenso, ou souber a password do Windows, chega aos dados. Não chega para dados de clientes.'},
+ {k:'m',quando:'Recomendado para trabalho com dados de clientes. É o mínimo razoável face ao RGPD.',inclui:['Tudo o do nível baixo','PIN de 8 ou mais dígitos no arranque do BitLocker','Duas YubiKeys para o email e o gestor de passwords','Trabalho diário numa conta padrão e password na BIOS','Proteção contra ransomware (Acesso controlado a pastas)','Um disco de backup fora do escritório','Signal em vez de WhatsApp para documentos','Acesso de emergência e colega substituto'],
+  protege:'Também quem roube o PC e tente arrancá-lo sem o PIN, phishing de passwords e ransomware.',falha:'Com o PC ligado e desbloqueado, todos os ficheiros estão acessíveis.'},
+ {k:'a',quando:'Processos muito sensíveis, risco de ataque dirigido, ou exigência do cliente.',inclui:['Tudo o do nível médio','BitLocker com XTS-AES 256, definido antes de encriptar','Chave de recuperação apagada da conta Microsoft','Contentor VeraCrypt para os processos mais sensíveis, aberto só quando preciso','Backup na cloud encriptado antes de subir (Cryptomator)','Email encriptado (Proton Mail) para documentos de clientes'],
+  protege:'Mesmo com o PC ligado, os processos mais sensíveis só ficam visíveis enquanto o contentor está aberto. A Microsoft deixa de ter cópia da chave.',falha:'Exige disciplina. Esquecer uma passphrase pode significar perder os dados de vez.'}
+];
+var ENC=[
+ {c:'Ficheiros para enviar',t:'Enviar um ou vários ficheiros com password',l:'b',s:[
+  'Instala o 7-Zip, de 7-zip.org.',
+  'Botão direito nos ficheiros, 7-Zip, Adicionar ao arquivo.',
+  'Formato 7z, método de encriptação AES-256, e marca Encriptar nomes de ficheiros.',
+  'Usa uma password longa gerada no Bitwarden.',
+  'Envia o ficheiro por email e a password por outra via, como telefone ou Signal. Nunca no mesmo email.'],
+  n:'Evita o formato zip com ZipCrypto. É fraco e parte-se em minutos.'},
+ {c:'Ficheiros para enviar',t:'Documento Word, Excel ou PowerPoint com password',l:'b',s:[
+  'Ficheiro, Informações, Proteger documento, Encriptar com palavra-passe.',
+  'As versões atuais do Office usam AES de 256 bits.',
+  'A password vai por outra via, como no guia anterior.'],
+  n:'Restringir edição e Marcar como final não encriptam nada. Só Encriptar com palavra-passe protege o conteúdo.'},
+ {c:'Ficheiros para enviar',t:'PDF com password',l:'b',s:[
+  'No Word: Guardar como, PDF, Opções, Encriptar o documento com uma palavra-passe.',
+  'No Acrobat Pro: Proteger, Proteger com palavra-passe, para abrir o documento.',
+  'A password de permissões, que impede imprimir ou copiar, não protege o conteúdo. Conta só a password para abrir.']},
+ {c:'Ficheiros para enviar',t:'Email com documentos de clientes',l:'a',s:[
+  'Entre contas Proton Mail a encriptação de ponta a ponta é automática.',
+  'Para quem não usa Proton: mensagem protegida por password no Proton, ou anexo 7z com a password enviada por outra via.',
+  'Para partilhar uma password ou um texto curto: Bitwarden Send, com prazo e número de acessos limitados.']},
+ {c:'Ficheiros no PC',t:'Pen ou disco externo',l:'b',s:[
+  'No Explorador, botão direito no disco, Ativar o BitLocker.',
+  'Escolhe Usar uma palavra-passe para desbloquear a unidade.',
+  'Imprime a chave de recuperação e guarda-a junto às outras.',
+  'Se o disco já tiver dados, escolhe Encriptar toda a unidade.'],
+  n:'Um disco encriptado só abre em Windows. Para trocar ficheiros com Mac, usa um arquivo 7z com password.'},
+ {c:'Ficheiros no PC',t:'Proteger uma pasta de trabalho sensível',l:'a',s:[
+  'O BitLocker já protege tudo com o PC desligado. Uma camada extra só serve para proteger com o PC ligado.',
+  'No VeraCrypt: Criar volume, Criar um ficheiro contentor encriptado, AES, com tamanho de sobra.',
+  'Passphrase diferente da do Windows, escrita em papel e guardada no cofre.',
+  'Monta o contentor só quando trabalhas nesses processos e desmonta-o no fim.',
+  'O ficheiro do contentor entra no backup como qualquer outro.'],
+  n:'Evita a encriptação EFS do Windows (Propriedades, Avançadas, Encriptar conteúdo). Fica presa à conta do Windows e, se o certificado se perder, os ficheiros perdem-se com ele.'},
+ {c:'Ficheiros no PC',t:'Cloud: OneDrive, Google Drive, Dropbox',l:'a',s:[
+  'Os fornecedores encriptam os ficheiros, mas guardam as chaves. Com a conta invadida ou um pedido legal, os ficheiros são legíveis.',
+  'O Cryptomator, de cryptomator.org, cria um cofre dentro da pasta da cloud.',
+  'Tudo o que pões no cofre é encriptado no PC antes de subir.',
+  'A password do cofre vai para o Bitwarden e para o kit de emergência em papel.']},
+ {c:'Apps e telemóvel',t:'O que quer dizer encriptar uma app',l:'b',s:[
+  'No Windows não se encripta uma app. Protegem-se os dados que ela guarda, e esses já estão protegidos pelo BitLocker.',
+  'O que se faz é exigir desbloqueio para abrir as apps sensíveis. No Bitwarden: bloqueio automático ao fim de poucos minutos, com PIN ou Windows Hello.',
+  'Nas apps de email e mensagens, termina as sessões em dispositivos que já não usas.']},
+ {c:'Apps e telemóvel',t:'iPhone',l:'b',s:[
+  'O iPhone fica encriptado sempre que tem código. Usa 6 dígitos no mínimo, ou um código alfanumérico.',
+  'Definições, Face ID e código, Proteção de dispositivo roubado: ativar.',
+  'Para trancar uma app com Face ID: carrega na app sem soltar, Exigir Face ID.',
+  'Para o backup do iCloud ficar encriptado de ponta a ponta, ativa a Proteção avançada de dados. Antes disso, define um contacto ou uma chave de recuperação.']},
+ {c:'Apps e telemóvel',t:'Mensagens',l:'m',s:[
+  'Signal para tudo o que envolva clientes. Encriptado de ponta a ponta e com mensagens temporárias.',
+  'O WhatsApp também encripta, mas a cópia de segurança no iCloud ou no Google Drive só fica protegida se ativares a cópia encriptada.',
+  'Para passwords, prefere o Bitwarden Send com prazo curto a qualquer app de mensagens.']}
+];
+function itemLevel(i){return ITEM_LEVEL[i[0]]||'b'}
+function essential(j,i){return !i[3]&&LV[itemLevel(i)]<=LV[j.level||'m']}
 var GUIDES=[
  {c:'Arranque e BitLocker',t:'O PC pede a chave de recuperação do BitLocker',l:'tu',s:[
   'Não reinicies em ciclo nem tentes adivinhar. Costuma acontecer depois de atualizar a BIOS, mudar definições do arranque ou ligar uma doca ou disco no arranque.',
@@ -280,8 +356,8 @@ var GUIDES=[
 var KEY='seg-pc-state-v2',OLDKEY='seg-pc-state-v1';
 var root=document.getElementById('root');
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
-function newJob(code){return {id:uid(),code:code,created:today(),archived:false,done:{},revChecks:{},revLast:{}}}
-function normJob(j){return {id:j.id||uid(),code:String(j.code||'Sem código').slice(0,24),created:j.created||today(),archived:!!j.archived,done:j.done||{},revChecks:j.revChecks||{},revLast:j.revLast||{}}}
+function newJob(code){return {id:uid(),code:code,created:today(),archived:false,level:'m',done:{},revChecks:{},revLast:{}}}
+function normJob(j){return {id:j.id||uid(),code:String(j.code||'Sem código').slice(0,24),created:j.created||today(),archived:!!j.archived,level:LV.hasOwnProperty(j.level)?j.level:'m',done:j.done||{},revChecks:j.revChecks||{},revLast:j.revLast||{}}}
 function norm(s){s=s||{};return {version:2,jobs:(s.jobs||[]).map(normJob),lastExport:s.lastExport||null,updated:s.updated||0}}
 function fromV1(o){var j=newJob('Trabalho 1');j.done=o.done||{};j.revChecks=o.revChecks||{};j.revLast=o.revLast||{};return j}
 var state=norm({});
@@ -290,7 +366,7 @@ try{
  if(raw)state=norm(JSON.parse(raw));
  else{var old=localStorage.getItem(OLDKEY);if(old){var o=JSON.parse(old);if(Object.keys(o.done||{}).length||Object.keys(o.revLast||{}).length){state.jobs.push(fromV1(o));state.lastExport=o.lastExport||null;persist()}}}
 }catch(e){}
-var view={screen:'home',jobId:null,tab:'config',q:''};
+var view={screen:'home',jobId:null,tab:'config',q:'',etab:'niveis'};
 
 // ---------- Utilidades ----------
 function pad(n){return (n<10?'0':'')+n}
@@ -313,7 +389,7 @@ function revStatus(j,r){
  if(d<=7)return {cls:'warn',txt:'Faltam '+plural(d,' dia',' dias'),next:next,days:d,rank:2};
  return {cls:'ok',txt:'Em dia, faltam '+d+' dias',next:next,days:d,rank:1};
 }
-function counts(j){var e=0,ed=0,o=0,od=0;PHASES.forEach(function(p){p.items.forEach(function(i){if(i[3]){o++;if(j.done[i[0]])od++}else{e++;if(j.done[i[0]])ed++}})});return {e:e,ed:ed,o:o,od:od}}
+function counts(j){var e=0,ed=0,o=0,od=0;PHASES.forEach(function(p){p.items.forEach(function(i){if(!essential(j,i)){o++;if(j.done[i[0]])od++}else{e++;if(j.done[i[0]])ed++}})});return {e:e,ed:ed,o:o,od:od}}
 function jobReview(j){
  var best=null;
  REVIEWS.forEach(function(r){var s=revStatus(j,r);if(s.next!==null&&(best===null||s.days<best.s.days))best={r:r,s:s}});
@@ -334,7 +410,7 @@ function homeHTML(){
  var active=state.jobs.filter(function(j){return !j.archived}),arch=state.jobs.filter(function(j){return j.archived}),bk=backupStatus();
  active.sort(function(a,b){return jobReview(b).rank-jobReview(a).rank||a.code.localeCompare(b.code,'pt')});
  var h='<h1>Segurança do PC</h1><p class="lede">Os teus trabalhos, as revisões de cada um e o que fazer quando algo corre mal. Usa só códigos, nunca nomes.</p>';
- h+='<div class="actions"><button class="btn" id="new" data-act="new">Novo trabalho</button><button class="btn line" id="help" data-act="help">Resolver um problema</button><button class="btn line" id="ai" data-act="ai">Perguntar à IA</button><button class="btn ghost" id="status" data-act="status">Estado da app</button></div>';
+ h+='<div class="actions"><button class="btn" id="new" data-act="new">Novo trabalho</button><button class="btn line" id="help" data-act="help">Resolver um problema</button><button class="btn line" id="ai" data-act="ai">Perguntar à IA</button><button class="btn line" id="enc" data-act="enc">Encriptação</button><button class="btn ghost wide" id="status" data-act="status">Estado da app</button></div>';
  h+='<p class="sect-t">Trabalhos ativos</p>';
  if(!active.length)h+='<div class="empty">Ainda não há trabalhos. Cria o primeiro com um código, por exemplo PC 01.</div>';
  active.forEach(function(j){h+=jobCard(j)});
@@ -350,19 +426,20 @@ function jobCard(j){
 function jobHTML(j){
  var c=counts(j),pct=c.e?Math.round(c.ed/c.e*100):0,nr=jobReview(j);
  var h='<button class="back" id="back" data-act="home">‹ Trabalhos</button><h1>'+esc(j.code)+'</h1><p class="lede">Criado a '+fmt(j.created)+(j.archived?'. Arquivado.':'.')+'</p>';
- h+='<div class="summary"><div class="sum"><div class="k">Essenciais</div><div class="v">'+c.ed+' de '+c.e+'</div><div class="bar"><i style="width:'+pct+'%"></i></div><div class="k" style="margin-top:6px">Opcionais: '+c.od+' de '+c.o+'</div></div>';
+ h+='<div class="summary"><div class="sum"><div class="k">Essenciais</div><div class="v">'+c.ed+' de '+c.e+'</div><div class="bar"><i style="width:'+pct+'%"></i></div><div class="k" style="margin-top:6px">Extra neste nível: '+c.od+' de '+c.o+'</div></div>';
  h+='<div class="sum"><div class="k">Próxima revisão</div><div class="v">'+esc(nr.v)+'</div><div class="k" style="margin-top:4px">'+esc(nr.k)+'</div></div></div>';
+ h+=levelPicker(j);
  h+='<div class="tabs" role="tablist"><button id="tab-config" role="tab" data-tab="config" aria-selected="'+(view.tab==='config')+'">Configuração</button><button id="tab-rev" role="tab" data-tab="rev" aria-selected="'+(view.tab==='rev')+'">Revisões</button></div>';
  if(view.tab==='config'){
   PHASES.forEach(function(p,pi){
-   var ess=p.items.filter(function(i){return !i[3]}),d=0,dall=0;
-   p.items.forEach(function(i){if(j.done[i[0]]){dall++;if(!i[3])d++}});
+   var ess=p.items.filter(function(i){return essential(j,i)}),d=0,dall=0;
+   p.items.forEach(function(i){if(j.done[i[0]]){dall++;if(essential(j,i))d++}});
    var full=d===ess.length&&(ess.length>0||dall===p.items.length),allOpt=ess.length===0;
-   var label=allOpt?(dall+'/'+p.items.length+' opcionais'):(full?'Concluída':d+'/'+ess.length);
+   var label=allOpt?(dall+'/'+p.items.length+' extra'):(full?'Concluída':d+'/'+ess.length);
    h+='<details class="box"'+(full?'':' open')+'><summary><span class="ph-t">Fase '+pi+'. '+esc(p.t)+'</span><span class="ph-c'+(full&&!allOpt?' full':'')+'">'+label+'</span></summary><ul class="items">';
    p.items.forEach(function(i){
     var w=j.done[i[0]];
-    h+='<li><label class="it'+(w?' done':'')+'"><input type="checkbox" id="c-'+i[0]+'" data-step="'+i[0]+'"'+(w?' checked':'')+'><span><span class="tx">'+esc(i[1])+'</span>'+(i[3]?'<span class="tag">Opcional</span>':'')+(i[2]?'<span class="dt">'+cmd(i[2])+'</span>':'')+(w?'<span class="when">Feito a '+fmt(w)+'</span>':'')+'</span></label></li>';
+    h+='<li><label class="it'+(w?' done':'')+'"><input type="checkbox" id="c-'+i[0]+'" data-step="'+i[0]+'"'+(w?' checked':'')+'><span><span class="tx">'+esc(i[1])+'</span>'+(i[3]?'<span class="tag">Opcional</span>':(essential(j,i)?'':'<span class="tag">Nível '+LVNAME[itemLevel(i)].toLowerCase()+'</span>'))+(i[2]?'<span class="dt">'+cmd(i[2])+'</span>':'')+(w?'<span class="when">Feito a '+fmt(w)+'</span>':'')+'</span></label></li>';
    });
    h+='</ul></details>';
   });
@@ -407,12 +484,47 @@ function render(){
  else if(view.screen==='help')h+=helpHTML();
  else if(view.screen==='ai')h+=aiHTML();
  else if(view.screen==='status')h+=statusHTML();
+ else if(view.screen==='enc')h+=encHTML();
  else{view.screen='home';h+=homeHTML()}
  root.innerHTML=h+'</div>';
  if(fid){var el=document.getElementById(fid);if(el)el.focus({preventScroll:true})}
  if(view.screen==='ai'){var ta=document.getElementById('ask');if(ta)ta.value=ai.draft}
 }
 function go(screen,id){view.screen=screen;view.jobId=id||null;if(screen!=='job')view.tab='config';render();window.scrollTo(0,0)}
+
+// ---------- Encriptação ----------
+function levelPicker(j){
+ var lv=j.level||'m',n=NIVEIS[LV[lv]];
+ var h='<div class="card"><p class="sect-t" style="margin-bottom:10px">Nível de proteção</p><div class="seg" role="group" aria-label="Nível de proteção">';
+ NIVEIS.forEach(function(x){h+='<button id="lv-'+x.k+'" data-level="'+x.k+'" aria-pressed="'+(x.k===lv)+'">'+LVNAME[x.k]+'</button>'});
+ h+='</div><p class="meta">'+esc(n.quando)+'</p>';
+ if(lv==='b')h+='<p class="meta" style="color:var(--warn)">Com dados de clientes, este nível não chega.</p>';
+ return h+'</div>';
+}
+function encHTML(){
+ var h='<button class="back" id="back" data-act="home">‹ Trabalhos</button><h1>Encriptação</h1><p class="lede">Escolhe o nível de cada PC e vê como proteger ficheiros, discos e apps.</p>';
+ h+='<div class="tabs" role="tablist"><button id="etab-niveis" role="tab" data-etab="niveis" aria-selected="'+(view.etab==='niveis')+'">Níveis do PC</button><button id="etab-fich" role="tab" data-etab="fich" aria-selected="'+(view.etab==='fich')+'">Ficheiros e apps</button></div>';
+ if(view.etab==='niveis'){
+  NIVEIS.forEach(function(n){
+   var js=state.jobs.filter(function(j){return !j.archived&&(j.level||'m')===n.k}).map(function(j){return j.code});
+   h+='<section class="card"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px"><h2>'+LVNAME[n.k]+'</h2><span class="lvl n'+n.k+'">'+(js.length?plural(js.length,' trabalho',' trabalhos'):'Sem trabalhos')+'</span></div>';
+   h+='<p class="meta">'+esc(n.quando)+'</p><ul class="plain">';
+   n.inclui.forEach(function(x){h+='<li>'+esc(x)+'</li>'});
+   h+='</ul><p class="meta"><strong>Protege contra:</strong> '+esc(n.protege)+'</p><p class="meta"><strong>Limite:</strong> '+esc(n.falha)+'</p>'+(js.length?'<p class="meta">'+esc(js.join(', '))+'</p>':'')+'</section>';
+  });
+  h+='<p class="note">O nível certo é o mais alto que vais cumprir sempre, não o mais alto possível. Um nível alto que se salta à sexta-feira protege menos do que um médio cumprido todos os dias. O nível de cada PC muda-se dentro do trabalho.</p>';
+ }else{
+  var cat=null;
+  ENC.forEach(function(g,gi){
+   if(g.c!==cat){cat=g.c;h+='<p class="cat">'+esc(cat)+'</p>'}
+   h+='<details class="box" id="e-'+gi+'"><summary><span class="g-t">'+esc(g.t)+'</span><span class="lvl n'+g.l+'">Nível '+LVNAME[g.l].toLowerCase()+'</span></summary><div class="g-body"><ol class="steps">';
+   g.s.forEach(function(x){h+='<li>'+cmd(x)+'</li>'});
+   h+='</ol>'+(g.n?'<div class="g-note">'+esc(g.n)+'</div>':'')+'</div></details>';
+  });
+  h+='<p class="note">O nível indica a partir de quando a medida faz parte do plano. Abaixo disso continua a ser útil, só não é obrigatória.</p>';
+ }
+ return h;
+}
 
 // ---------- Assistente IA ----------
 // A chave fica só neste dispositivo, numa entrada própria, e nunca entra na exportação.
@@ -422,8 +534,10 @@ function getKey(){try{return localStorage.getItem(AIKEY)||''}catch(e){return ''}
 function setKey(k){try{if(k)localStorage.setItem(AIKEY,k);else localStorage.removeItem(AIKEY);return true}catch(e){return false}}
 function appText(){
  var t='CHECKLIST DE CONFIGURAÇÃO\n';
- PHASES.forEach(function(p,pi){t+='Fase '+pi+'. '+p.t+'\n';p.items.forEach(function(i){t+='- '+i[1]+(i[3]?' (opcional)':'')+(i[2]?': '+i[2]:'')+'\n'})});
+ PHASES.forEach(function(p,pi){t+='Fase '+pi+'. '+p.t+'\n';p.items.forEach(function(i){t+='- '+i[1]+(i[3]?' (opcional)':' (essencial a partir do nível '+LVNAME[itemLevel(i)].toLowerCase()+')')+(i[2]?': '+i[2]:'')+'\n'})});
  t+='\nREVISÕES\n';REVIEWS.forEach(function(r){t+=r.t+': '+r.items.map(function(i){return i[1]}).join('; ')+'\n'});
+ t+='\nNÍVEIS DE PROTEÇÃO\n';NIVEIS.forEach(function(n){t+=LVNAME[n.k]+': '+n.quando+' Inclui: '+n.inclui.join('; ')+'. Protege contra: '+n.protege+' Limite: '+n.falha+'\n'});
+ t+='\nGUIAS DE ENCRIPTAÇÃO DE FICHEIROS E APPS\n';ENC.forEach(function(g){t+='\n'+g.t+' [nível '+LVNAME[g.l].toLowerCase()+']\n';g.s.forEach(function(x,k){t+=(k+1)+'. '+x+'\n'});if(g.n)t+='Nota: '+g.n+'\n'});
  t+='\nGUIAS DE RESOLUÇÃO DE PROBLEMAS\n';
  GUIDES.forEach(function(g){t+='\n'+g.t+' ['+LEVELS[g.l]+']\n';g.s.forEach(function(s,k){t+=(k+1)+'. '+s+'\n'});if(g.n)t+='Nota: '+g.n+'\n'});
  return t;
@@ -436,9 +550,9 @@ function aiSystem(j){
  var sys=[{type:'text',text:base,cache_control:{type:'ephemeral'}}];
  if(j){
   var feitos=[],falta=[];
-  PHASES.forEach(function(p){p.items.forEach(function(i){(j.done[i[0]]?feitos:falta).push(i[1]+(i[3]?' (opcional)':''))})});
+  PHASES.forEach(function(p){p.items.forEach(function(i){(j.done[i[0]]?feitos:falta).push(i[1]+(essential(j,i)?'':' (extra neste nível)'))})});
   var rv=REVIEWS.map(function(r){return r.t+': '+revStatus(j,r).txt}).join('; ');
-  sys.push({type:'text',text:'A conversa é sobre o trabalho com o código '+j.code+'.\nPassos feitos: '+(feitos.join('; ')||'nenhum')+'.\nPassos por fazer: '+(falta.join('; ')||'nenhum')+'.\nRevisões: '+rv+'.'});
+  sys.push({type:'text',text:'A conversa é sobre o trabalho com o código '+j.code+', com nível de proteção '+LVNAME[j.level||'m'].toLowerCase()+'.\nPassos feitos: '+(feitos.join('; ')||'nenhum')+'.\nPassos por fazer: '+(falta.join('; ')||'nenhum')+'.\nRevisões: '+rv+'.'});
  }
  return sys;
 }
@@ -598,7 +712,7 @@ function statusHTML(){
  h+='<p class="lede">Verificado às '+pad(stat.when.getHours())+':'+pad(stat.when.getMinutes())+'.</p><div class="card"><h2>'+esc(s.txt)+'</h2><span class="st '+s.cls+'">'+(bad?'Precisa de atenção':warn?'Funciona, com avisos':'Pronta a usar')+'</span></div>';
  stat.rows.forEach(function(r){h+='<div class="card"><div class="top" style="display:flex;justify-content:space-between;gap:10px;align-items:baseline"><span class="ph-t">'+esc(r.t)+'</span><span class="st '+r.cls+'" style="margin-top:0;white-space:nowrap">'+esc(r.txt)+'</span></div>'+(r.d?'<p class="meta" style="margin-bottom:0">'+esc(r.d)+'</p>':'')+'</div>'});
  h+='<div class="card"><h2>Verificar o próprio PC</h2><p class="meta">Esta página não consegue ver o PC. Para isso há um script que só lê o estado do Windows: TPM, Secure Boot, BitLocker com PIN, conta padrão, Defender, firewall, atualizações. Não altera nada, não usa a internet e não mostra nomes nem chaves.</p>';
- h+='<ol class="steps"><li>No PC, abre este endereço no browser e descarrega o script.</li><li>Botão direito no menu Iniciar, Terminal (Admin).</li><li>Escreve <code class="cmd">powershell -ExecutionPolicy Bypass -File "$env:USERPROFILE\\Downloads\\verificar-pc.ps1"</code></li></ol>';
+ h+='<ol class="steps"><li>No PC, abre este endereço no browser e descarrega o script.</li><li>Botão direito no menu Iniciar, Terminal (Admin).</li><li>Escreve <code class="cmd">powershell -ExecutionPolicy Bypass -File "$env:USERPROFILE\\Downloads\\verificar-pc.ps1" -Nivel Medio</code></li><li>Troca Medio por Baixo ou Alto conforme o nível do trabalho.</li></ol>';
  h+='<div class="row"><a class="btn line" href="verificar-pc.ps1" download style="text-decoration:none">Descarregar script</a></div></div>';
  h+='<div class="row"><button class="btn" id="status-run" data-act="status-run"'+(stat.running?' disabled':'')+'>'+(stat.running?'A verificar…':'Verificar de novo')+'</button></div>';
  return h;
@@ -664,6 +778,8 @@ root.addEventListener('click',function(e){
  var a=b.dataset.act,j=job();
  if(b.dataset.open){view.tab='config';go('job',b.dataset.open)}
  else if(b.dataset.tab){view.tab=b.dataset.tab;render()}
+ else if(b.dataset.etab){view.etab=b.dataset.etab;render()}
+ else if(b.dataset.level&&j){if(j.level!==b.dataset.level){j.level=b.dataset.level;save();toast('Nível '+LVNAME[j.level].toLowerCase()+'. A checklist foi ajustada.')}}
  else if(b.dataset.log&&j){j.revLast[b.dataset.log]=today();j.revChecks[b.dataset.log]={};save();toast('Revisão registada')}
  else if(a==='home')go('home');
  else if(a==='help'){view.q='';go('help')}
@@ -673,6 +789,7 @@ root.addEventListener('click',function(e){
  else if(a==='delete'&&j){if(confirm('Apagar o trabalho '+j.code+' e todo o histórico? Não dá para desfazer.')){state.jobs=state.jobs.filter(function(x){return x.id!==j.id});state.updated=Date.now();persist();go('home');toast('Trabalho apagado')}}
  else if(a==='ai'){if(ai.jobId!==null||!ai.sys)aiStart(null);go('ai')}
  else if(a==='status'){go('status');runStatus()}
+ else if(a==='enc')go('enc');
  else if(a==='status-run')runStatus();
  else if(a==='ai-job'&&j){if(ai.jobId!==j.id||!ai.sys)aiStart(j.id);go('ai')}
  else if(a==='ai-new'){aiStart(ai.jobId);render()}

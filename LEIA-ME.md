@@ -6,11 +6,13 @@ App offline para acompanhar vários trabalhos de segurança: checklist de config
 
 - Vários trabalhos, cada um identificado só por um código (PC 01, Cliente A). Nunca nomes reais.
 - Checklist por fases, com os passos essenciais separados dos opcionais.
+- Nível de proteção por trabalho (baixo, médio, alto). O nível muda o que conta como essencial. Os trabalhos antigos ficam em médio, igual ao plano original.
+- Encriptação: comparação dos três níveis e 10 guias para ficheiros, emails, discos, cloud, apps e iPhone.
 - Revisões mensal, semestral e anual por trabalho, com aviso de atraso.
 - 17 guias de resolução de problemas, com pesquisa, e a indicação de quando se resolve sozinho, quando é urgente e quando é caso para um profissional.
 - Exportar e importar tudo num ficheiro.
 - Estado da app: diagnóstico do modo offline, versão, gravação dos dados, cópias, revisões atrasadas e chave da IA (o teste da chave não gasta crédito).
-- Script verificar-pc.ps1 para correr no próprio PC como administrador. Só lê: edição do Windows, TPM, Secure Boot, contas, Defender, Acesso controlado a pastas, firewall, atualizações, BitLocker com PIN e discos. Não altera nada nem mostra nomes ou chaves.
+- Script verificar-pc.ps1 para correr no próprio PC como administrador. Só lê: edição do Windows, TPM, Secure Boot, contas, Defender, Acesso controlado a pastas, firewall, atualizações, BitLocker com PIN e discos. Não altera nada nem mostra nomes ou chaves. Aceita -Nivel Baixo, Medio ou Alto, igual ao do trabalho.
 - Assistente com IA (Claude), geral ou sobre um trabalho concreto. Precisa de internet e de uma chave da API da Anthropic, colada uma vez no iPhone.
 - O progresso da versão anterior passa automaticamente para o primeiro trabalho.
 
