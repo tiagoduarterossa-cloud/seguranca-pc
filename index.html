@@ -610,7 +610,7 @@ var LAB=[
   'Inicializa o disco (GPT), cria um Novo Volume Simples com o nome Backup.',
   'No Explorador, botão direito no disco, Ativar o BitLocker, com palavra-passe. A chave não pode ser gravada num disco encriptado: imprime para Microsoft Print to PDF ou aponta à mão.',
   'Cria um ficheiro de teste em Documentos e copia-o para o disco Backup. O Histórico de Ficheiros pode recusar discos virtuais acrescentados com a máquina ligada; num disco USB costuma funcionar.',
-  'Bloqueia o disco como se o desligasses: manage-bde -lock E:',
+  'Fecha as janelas que usem o disco e bloqueia-o como se o desligasses: manage-bde -lock E: -ForceDismount. Confirma com manage-bde -status E:, que deve dizer Locked.',
   'Apaga o ficheiro de Documentos e esvazia a Reciclagem.',
   'Duplo clique no disco Backup, desbloqueia com a palavra-passe e copia o ficheiro de volta. Abre-o.'],
   v:'Fizeste o teste de restauro que o plano pede todos os meses, incluindo desbloquear um disco de backup encriptado.'},
