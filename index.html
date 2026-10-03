@@ -564,12 +564,14 @@ var LAB=[
   'Na cópia da chave, imprime para Microsoft Print to PDF e copia também os 48 dígitos à mão para papel, como farias a sério.',
   'Reinicia e escreve o PIN.'],
   v:'Antes do Windows aparece um ecrã azul a pedir o PIN. manage-bde -status mostra Proteção Ativada.'},
- {id:'l4',g:'Exercícios',t:'Forçar o ecrã de recuperação',s:[
-  'Linha de comandos como administrador: manage-bde -forcerecovery C: e reinicia.',
-  'No ecrã de recuperação, compara o ID da chave com o do teu papel e escreve os 48 dígitos.',
-  'Já no Windows, o TPM deixou de proteger o disco. Volta a pô-lo com manage-bde -protectors -add C: -TPMAndPIN.',
-  'Reinicia e confirma que volta a pedir só o PIN.'],
-  v:'Treinaste exatamente o guia O PC pede a chave de recuperação, sem pressão.'},
+ {id:'l4',g:'Exercícios',t:'Apagar o PIN e repor a proteção',s:[
+  'Linha de comandos como administrador: manage-bde -forcerecovery C:',
+  'Lê a resposta: o protetor TPM e PIN é apagado e a proteção fica suspensa (Key protectors have been disabled).',
+  'Reinicia. O Windows arranca sem pedir PIN nem chave. É o estado perigoso: parece normal, mas o disco está aberto.',
+  'Confirma com manage-bde -status C:, que mostra Protection Off e só Numerical Password.',
+  'Repõe o PIN com manage-bde -protectors -add C: -TPMAndPIN e liga a proteção com manage-bde -protectors -enable C:',
+  'Reinicia e confirma que volta a pedir o PIN.'],
+  v:'Percebes porque é que um PC pode arrancar normalmente com o disco desprotegido, e como o repor. O ecrã de recuperação treina-se no exercício seguinte, com Esc no ecrã do PIN.'},
  {id:'l5',g:'Exercícios',t:'Mudar e recuperar o PIN',s:[
   'No ecrã do PIN, carrega em Esc para entrar pela chave de recuperação, como se o tivesses esquecido.',
   'No Windows, como administrador: manage-bde -changepin C: e define um PIN novo.',
