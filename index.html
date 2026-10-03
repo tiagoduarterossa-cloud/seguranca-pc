@@ -600,10 +600,14 @@ var LAB=[
   'Com um programa que não seja da Microsoft, por exemplo o 7-Zip, tenta extrair um ficheiro para Documentos.'],
   v:'Aparece um aviso de bloqueio. É o mesmo aviso que no PC real explica porque é que um programa deixou de gravar.'},
  {id:'l9',g:'Exercícios',t:'Contentor VeraCrypt',s:[
-  'Instala o VeraCrypt e cria um contentor de 1 GB.',
-  'Monta-o, copia ficheiros de teste para dentro e desmonta-o.',
-  'Tenta abri-lo com a passphrase errada. Depois muda o teclado para inglês e vê se a passphrase com acentos ainda funciona.'],
-  v:'Percebes na prática porque é que a passphrase vai para o papel e porque o idioma do teclado importa.'},
+  'Descarrega só do site oficial, veracrypt.io. Há sites falsos com nomes parecidos. A instalação pede a password do administrador.',
+  'Criar Volume, Criar um contentor de ficheiro encriptado, Volume padrão, ficheiro contentor em Documentos, AES e SHA-512, 1 GB.',
+  'Passphrase de várias palavras só com letras e números, sem acentos nem símbolos: noutro teclado os símbolos mudam de sítio. Aponta-a em papel.',
+  'Mexe o rato até a barra ficar verde e Formatar.',
+  'Escolhe uma letra (M:), Selecionar ficheiro, Montar. Copia um ficheiro de teste para o M:.',
+  'Fecha o Explorador, seleciona o M: no VeraCrypt e Desmontar. Lá fora fica só um ficheiro ilegível.',
+  'Tenta montar com a passphrase errada: tem de recusar. Monta com a certa e confirma que o ficheiro lá está.'],
+  v:'Percebes o hábito do nível alto: o contentor só fica aberto enquanto trabalhas nesses processos.'},
  {id:'l10',g:'Exercícios',t:'Backup e restauro num disco encriptado',s:[
   'No Gestor Hyper-V: Definições da máquina, Controlador SCSI, Unidade de disco rígido, Adicionar, Novo, expansão dinâmica, 10 GB.',
   'Com conta padrão, abre a Gestão de Discos a partir do Terminal (Admin) com diskmgmt.msc. Pelo menu direto diz que não tens acesso.',
