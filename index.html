@@ -145,7 +145,7 @@ var PHASES=[
  {t:'BitLocker',items:[
   ['p3k','Confirmar que o disco C está encriptado com BitLocker','Gerir BitLocker deve dizer BitLocker ativado. Se o disco já vinha encriptado de fábrica, conta.'],
   ['p3a','Definir XTS-AES 256 nas políticas','O AES 128 padrão já é seguro. Só funciona se for definido antes de encriptar. gpedit.msc, Componentes do Windows, Encriptação de Unidade BitLocker.'],
-  ['p3b','Ativar a autenticação adicional no arranque','gpedit.msc, mesma pasta, Unidades do Sistema Operativo. Permitir PIN com TPM.'],
+  ['p3b','Ativar a autenticação adicional no arranque','gpedit.msc, mesma pasta, Unidades do Sistema Operativo: Exigir autenticação adicional durante o arranque, Ativado, Permitir PIN de arranque com TPM. Cuidado com a gémea que termina em (Windows Server 2008 e Windows Vista): essa não serve.'],
   ['p3c','Ativar o BitLocker no disco C com PIN','PIN de 8 ou mais dígitos. Se o disco já estava encriptado, basta adicionar o PIN: manage-bde -protectors -add C: -TPMAndPIN como administrador.'],
   ['p3d','Imprimir a chave de recuperação','Gerir BitLocker, Fazer cópia de segurança da chave. Confirma que está legível antes de reiniciar.'],
   ['p3j','Apagar a chave da conta Microsoft','Só depois de a cópia em papel estar confirmada. account.microsoft.com/devices/recoverykey. Troca conveniência por privacidade.'],
@@ -275,7 +275,9 @@ var GUIDES=[
   'Depois do reinício, confirma em Gerir BitLocker que a proteção está ativa. Se não estiver, escolhe Retomar proteção.']},
  {c:'Arranque e BitLocker',t:'Não consigo ativar o BitLocker com PIN',l:'tu',s:[
   'Erro a dizer que falta TPM: em tpm.msc confirma que está pronto. Se não estiver, ativa TPM, fTPM ou Intel PTT na BIOS.',
-  'Não aparece a opção de PIN: a política Exigir autenticação adicional no arranque não está ativa. Ativa-a, corre gpupdate /force como administrador e tenta de novo.',
+  'Não aparece a opção de PIN, ou dá erro 0x80310060: a política Exigir autenticação adicional durante o arranque não está ativa. Confirma que ativaste essa e não a gémea que termina em (Windows Server 2008 e Windows Vista). Corre gpupdate /force como administrador e tenta de novo.',
+  'Para confirmar, corre reg query HKLM\\SOFTWARE\\Policies\\Microsoft\\FVE: tem de aparecer UseAdvancedStartup. Se só aparecerem EnableNonTPM e UsePIN, ativaste a política antiga.',
+  'Erro a falar de um CD ou DVD de arranque: há uma pen, disco ou ISO ligado. Retira-o e repete. Não corras manage-bde -off, que desencripta o disco todo.',
   'Se o Windows for Home, não tem BitLocker completo. É preciso o upgrade para Pro.']},
  {c:'Contas e passwords',t:'Perdeu uma YubiKey',l:'tu',s:[
   'Entra nos serviços com a YubiKey de reserva.',
@@ -554,7 +556,9 @@ var LAB=[
   'Para escrever o PIN do BitLocker no arranque, usa a ligação básica: no menu Ver, desliga a Sessão avançada.'],
   v:'Tens um botão de desfazer para tudo o que vais fazer a seguir.'},
  {id:'l3',g:'Exercícios',t:'BitLocker com PIN do princípio ao fim',s:[
-  'gpedit.msc, Componentes do Windows, Encriptação de Unidade BitLocker, Unidades do Sistema Operativo: ativa Exigir autenticação adicional no arranque e permite o PIN com TPM.',
+  'gpedit.msc, Componentes do Windows, Encriptação de Unidade BitLocker, Unidades do Sistema Operativo: ativa Exigir autenticação adicional durante o arranque e confirma Permitir PIN de arranque com TPM. Há uma política gémea que termina em (Windows Server 2008 e Windows Vista): deixa essa em Não configurado.',
+  'Ejeta a ISO antes (Suporte de Dados, Unidade de DVD, Ejetar), senão o BitLocker recusa o TPM por haver um DVD de arranque.',
+  'Corre gpupdate /force. Se o Windows já tiver encriptado o disco sozinho (Protection Off, sem protetores), cria a chave com manage-bde -protectors -add C: -RecoveryPassword, junta o PIN com manage-bde -protectors -add C: -TPMAndPIN e liga com manage-bde -protectors -enable C:',
   'Se quiseres treinar o nível alto, define antes o XTS-AES 256 na mesma pasta.',
   'Gerir BitLocker, Ativar o BitLocker, escolhe introduzir um PIN.',
   'Na cópia da chave, imprime para Microsoft Print to PDF e copia também os 48 dígitos à mão para papel, como farias a sério.',
