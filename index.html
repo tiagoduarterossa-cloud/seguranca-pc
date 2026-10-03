@@ -551,6 +551,7 @@ var LAB=[
   'Nada de contas, passwords ou ficheiros reais dentro do laboratório.'],
   v:'O Windows arranca na janela do Hyper-V e tpm.msc mostra um TPM 2.0 pronto.'},
  {id:'l2',g:'Montar o laboratório',t:'3. Criar o ponto de partida',s:[
+  'Primeiro ejeta a ISO: Definições da máquina, Unidade de DVD, Nenhum. Os pontos de verificação guardam também esta configuração.',
   'Com o Windows instalado e desligado, no Gestor Hyper-V: botão direito na máquina, Ponto de verificação. Depois botão direito no ponto novo, Mudar o nome, e chama-lhe Limpo.',
   'O Ponto de Verificação Automático que o Hyper-V cria sozinho ao ligar a máquina pode ser ignorado.',
   'Sempre que quiseres recomeçar, botão direito no ponto Limpo, Aplicar.',
@@ -627,9 +628,12 @@ var LAB=[
   'Segue o guia O Windows Defender detetou uma ameaça.'],
   v:'O Defender bloqueia o ficheiro. Ficas a conhecer o aviso e o histórico antes de aparecerem a sério.'},
  {id:'l12',g:'Exercícios',t:'Voltar ao início',s:[
-  'Desliga a máquina virtual.',
-  'Aplica o ponto de verificação Limpo.',
-  'Repete os exercícios de que tiveste mais dúvidas.'],
+  'Cria antes um ponto de verificação do estado atual, por exemplo Tudo feito, para poderes voltar.',
+  'Desliga a máquina virtual com Encerrar.',
+  'Botão direito no ponto Limpo, Aplicar.',
+  'Se der Acesso negado à ISO ao ligar, o ponto foi criado com a ISO montada: Definições, Unidade de DVD, Nenhum.',
+  'Liga a máquina: arranca sem PIN nem nada do que configuraste.',
+  'Para voltar ao estado configurado, aplica o ponto Tudo feito. Apaga os pontos de que já não precisas, que ocupam espaço.'],
   v:'A máquina volta ao estado de depois da instalação, como se nada tivesse acontecido.'}
 ];
 function labHTML(){
