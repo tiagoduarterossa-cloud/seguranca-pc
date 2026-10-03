@@ -582,7 +582,7 @@ var LAB=[
   'Depois do reinício, confirma em Gerir BitLocker que a proteção voltou sozinha. Se não, Retomar proteção.'],
   v:'Percebes porque é que uma atualização da BIOS sem suspender acaba no ecrã de recuperação.'},
  {id:'l7',g:'Exercícios',t:'Correr o script de verificação',s:[
-  'Dentro da máquina virtual, abre este site no browser e descarrega o verificar-pc.ps1 no ecrã Estado da app.',
+  'Dentro da máquina virtual, descarrega o verificar-pc.ps1 com o comando Invoke-WebRequest que está no ecrã Estado da app. Pelo browser pode vir uma versão antiga em cache.',
   'Corre-o antes de configurares seja o que for e guarda o resultado com uma fotografia.',
   'Corre-o outra vez no fim dos exercícios, com -Nivel Medio e com -Nivel Alto.',
   'Se algo aparecer marcado como ATENÇÃO sem razão, descreve-o ao assistente ou a quem mantém a app.'],
@@ -820,7 +820,7 @@ function statusHTML(){
  h+='<p class="lede">Verificado às '+pad(stat.when.getHours())+':'+pad(stat.when.getMinutes())+'.</p><div class="card"><h2>'+esc(s.txt)+'</h2><span class="st '+s.cls+'">'+(bad?'Precisa de atenção':warn?'Funciona, com avisos':'Pronta a usar')+'</span></div>';
  stat.rows.forEach(function(r){h+='<div class="card"><div class="top" style="display:flex;justify-content:space-between;gap:10px;align-items:baseline"><span class="ph-t">'+esc(r.t)+'</span><span class="st '+r.cls+'" style="margin-top:0;white-space:nowrap">'+esc(r.txt)+'</span></div>'+(r.d?'<p class="meta" style="margin-bottom:0">'+esc(r.d)+'</p>':'')+'</div>'});
  h+='<div class="card"><h2>Verificar o próprio PC</h2><p class="meta">Esta página não consegue ver o PC. Para isso há um script que só lê o estado do Windows: TPM, Secure Boot, BitLocker com PIN, conta padrão, Defender, firewall, atualizações. Não altera nada, não usa a internet e não mostra nomes nem chaves.</p>';
- h+='<ol class="steps"><li>No PC, abre este endereço no browser e descarrega o script.</li><li>Botão direito no menu Iniciar, Terminal (Admin).</li><li>Escreve <code class="cmd">powershell -ExecutionPolicy Bypass -File "$env:USERPROFILE\\Downloads\\verificar-pc.ps1" -Nivel Medio</code></li><li>Troca Medio por Baixo ou Alto conforme o nível do trabalho.</li></ol>';
+ h+='<ol class="steps"><li>No PC, abre este endereço no browser e descarrega o script.</li><li>Botão direito no menu Iniciar, Terminal (Admin).</li><li>Escreve <code class="cmd">powershell -ExecutionPolicy Bypass -File "$env:USERPROFILE\\Downloads\\verificar-pc.ps1" -Nivel Medio</code></li><li>Troca Medio por Baixo ou Alto conforme o nível do trabalho.</li><li>Para ter sempre a versão mais recente, em vez do browser descarrega pelo terminal: <code class="cmd">Invoke-WebRequest "'+esc(location.href.split(/[?#]/)[0].replace(/[^/]*$/,''))+'verificar-pc.ps1?v='+Date.now()+'" -OutFile "$env:USERPROFILE\\Downloads\\verificar-pc.ps1" -UseBasicParsing</code></li></ol>';
  h+='<div class="row"><a class="btn line" href="verificar-pc.ps1" download style="text-decoration:none">Descarregar script</a></div></div>';
  h+='<div class="row"><button class="btn" id="status-run" data-act="status-run"'+(stat.running?' disabled':'')+'>'+(stat.running?'A verificar…':'Verificar de novo')+'</button></div>';
  return h;
