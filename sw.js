@@ -1,5 +1,5 @@
 // Mudar a versão sempre que alterares algum ficheiro, para o iPhone buscar a nova.
-const CACHE = 'seg-pc-v15';
+const CACHE = 'seg-pc-v16';
 const ASSETS = [
   './',
   './index.html',

@@ -577,10 +577,12 @@ var LAB=[
   'No Windows, como administrador: manage-bde -changepin C: e define um PIN novo.',
   'Reinicia com o PIN novo.']},
  {id:'l6',g:'Exercícios',t:'Suspender o BitLocker para atualizar a BIOS',s:[
-  'Gerir BitLocker, Suspender proteção.',
-  'Reinicia. Desta vez não pede PIN.',
-  'Depois do reinício, confirma em Gerir BitLocker que a proteção voltou sozinha. Se não, Retomar proteção.'],
-  v:'Percebes porque é que uma atualização da BIOS sem suspender acaba no ecrã de recuperação.'},
+  'Terminal (Admin): manage-bde -status C: tem de dizer Protection On.',
+  'Suspende só durante um reinício: manage-bde -protectors -disable C: -RebootCount 1',
+  'Confirma com manage-bde -status C:, que agora diz Protection Off.',
+  'Reinicia. Desta vez não pede PIN. Num PC a sério, é aqui que a atualização da BIOS corre.',
+  'Depois de entrar, manage-bde -status C: tem de ter voltado sozinho a Protection On. Se não voltou, manage-bde -protectors -enable C:'],
+  v:'Percebes porque é que uma atualização da BIOS sem suspender acaba no ecrã de recuperação, e porque o -RebootCount 1 impede que a proteção fique desligada para sempre.'},
  {id:'l7',g:'Exercícios',t:'Correr o script de verificação',s:[
   'Dentro da máquina virtual, descarrega o verificar-pc.ps1 com o comando Invoke-WebRequest que está no ecrã Estado da app. Pelo browser pode vir uma versão antiga em cache.',
   'Corre-o antes de configurares seja o que for e guarda o resultado com uma fotografia.',
