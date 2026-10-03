@@ -21,6 +21,21 @@ function Need($min) { return $script:nv -ge @{ Baixo = 0; Medio = 1; Alto = 2 }[
 function Gap($min) { if (Need $min) { 'FALHA' } else { 'INFO' } }
 function Lv($min) { if (Need $min) { '' } else { " Essencial a partir do nível $($min.Replace('Medio','médio').ToLower())." } }
 
+# Win32_ComputerSystem.UserName fica vazio em sessões remotas, incluindo a sessão avançada do Hyper-V;
+# nesse caso usa-se o dono do explorer.exe, que é quem tem o ambiente de trabalho aberto.
+function Get-SessionAccount {
+    $u = (Get-CimInstance Win32_ComputerSystem).UserName
+    if ($u) { return [string]$u }
+    try {
+        $p = @(Get-CimInstance Win32_Process -Filter "Name='explorer.exe'") | Select-Object -First 1
+        if ($p) {
+            $o = Invoke-CimMethod -InputObject $p -MethodName GetOwner
+            if ($o.User) { return "$($o.Domain)\$($o.User)" }
+        }
+    } catch {}
+    return $null
+}
+
 function Get-SessionSid($conta) {
     try { return (New-Object Security.Principal.NTAccount($conta)).Translate([Security.Principal.SecurityIdentifier]).Value } catch { return $null }
 }
@@ -84,27 +99,29 @@ try {
             (New-Object Security.Principal.SecurityIdentifier($b, 0)).Value
         })
     }
-    $sessao = (Get-CimInstance Win32_ComputerSystem).UserName
+    $sessao = Get-SessionAccount
     $sid = $null
     if ($sessao) { $sid = Get-SessionSid $sessao }
-    if (-not $sessao) {
-        Add-Result 'Sistema' 'Conta de trabalho padrão' 'ATENÇÃO' 'Não há sessão aberta para confirmar.'
+    if (-not $sid) {
+        Add-Result 'Sistema' 'Conta de trabalho padrão' 'ATENÇÃO' 'Não foi possível identificar a conta com sessão aberta. Confirma em Definições, Contas, se é Administrador ou Padrão.'
+    } elseif ($admins -contains $sid) {
+        Add-Result 'Sistema' 'Conta de trabalho padrão' (Gap 'Medio') ('A conta com sessão aberta é administradora. O trabalho diário deve ser feito numa conta padrão.' + (Lv 'Medio'))
     } else {
-        if ($admins -contains $sid) {
-            Add-Result 'Sistema' 'Conta de trabalho padrão' (Gap 'Medio') ('A conta com sessão aberta é administradora. O trabalho diário deve ser feito numa conta padrão.' + (Lv 'Medio'))
-        } else {
-            Add-Result 'Sistema' 'Conta de trabalho padrão' 'OK' 'A conta com sessão aberta é padrão.'
-        }
+        Add-Result 'Sistema' 'Conta de trabalho padrão' 'OK' 'A conta com sessão aberta é padrão.'
     }
     # Administradores além da conta de trabalho: sem outro, passar esta a padrão deixa o PC sem administrador.
-    $outros = @(Get-LocalUser | Where-Object { $_.Enabled -and ($admins -contains $_.SID.Value) -and $_.SID.Value -ne $sid }).Count
-    $sessaoAdm = $sid -and ($admins -contains $sid)
-    if ($outros -ge 1) {
-        Add-Result 'Sistema' 'Conta de administrador separada' 'OK' "$outros conta(s) de administrador além da conta de trabalho."
-    } elseif ($sessaoAdm) {
-        Add-Result 'Sistema' 'Conta de administrador separada' (Gap 'Medio') ('A conta de trabalho é a única administradora. Cria primeiro outra conta de administrador e entra nela para testar; só depois passa a de trabalho a padrão, senão o PC fica sem administrador.' + (Lv 'Medio'))
+    $ativos = @(Get-LocalUser | Where-Object { $_.Enabled -and ($admins -contains $_.SID.Value) })
+    if (-not $sid) {
+        Add-Result 'Sistema' 'Conta de administrador separada' 'ATENÇÃO' "$($ativos.Count) conta(s) local(is) de administrador ativa(s). Sem saber qual é a conta de trabalho, confirma à mão que há outra além dela."
     } else {
-        Add-Result 'Sistema' 'Conta de administrador separada' 'ATENÇÃO' 'Nenhuma conta local de administrador ativa encontrada. Pode ser uma conta Microsoft; confirma.'
+        $outros = @($ativos | Where-Object { $_.SID.Value -ne $sid }).Count
+        if ($outros -ge 1) {
+            Add-Result 'Sistema' 'Conta de administrador separada' 'OK' "$outros conta(s) de administrador além da conta de trabalho."
+        } elseif ($admins -contains $sid) {
+            Add-Result 'Sistema' 'Conta de administrador separada' (Gap 'Medio') ('A conta de trabalho é a única administradora. Cria primeiro outra conta de administrador e entra nela para testar; só depois passa a de trabalho a padrão, senão o PC fica sem administrador.' + (Lv 'Medio'))
+        } else {
+            Add-Result 'Sistema' 'Conta de administrador separada' 'ATENÇÃO' 'Nenhuma conta local de administrador ativa encontrada. Pode ser uma conta Microsoft; confirma.'
+        }
     }
 } catch { Add-Result 'Sistema' 'Contas' 'ATENÇÃO' 'Não foi possível ler as contas.' }
 
@@ -119,7 +136,8 @@ try {
     } elseif ($dias -ne $null -and $dias -gt 45) {
         Add-Result 'Sistema' 'Atualizações automáticas' 'ATENÇÃO' "A última atualização instalada foi há $dias dias."
     } elseif ($dias -ne $null) {
-        Add-Result 'Sistema' 'Atualizações automáticas' 'OK' "Ligadas. Última atualização há $dias dias."
+        $txt = if ($dias -eq 0) { 'hoje' } elseif ($dias -eq 1) { 'há 1 dia' } else { "há $dias dias" }
+        Add-Result 'Sistema' 'Atualizações automáticas' 'OK' "Ligadas. Última atualização $txt."
     } else {
         Add-Result 'Sistema' 'Atualizações automáticas' 'OK' 'Ligadas.'
     }
