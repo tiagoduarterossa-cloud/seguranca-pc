@@ -166,6 +166,17 @@ try {
 } catch { Add-Result 'Sistema' 'Acesso controlado a pastas' 'ATENÇÃO' 'Não foi possível ler.' }
 
 try {
+    $pua = (Get-MpPreference).PUAProtection
+    if ($pua -eq 1) {
+        Add-Result 'Sistema' 'Bloqueio de aplicações indesejadas' 'OK' 'Ativo.'
+    } elseif ($pua -eq 2) {
+        Add-Result 'Sistema' 'Bloqueio de aplicações indesejadas' 'ATENÇÃO' 'Só em modo de auditoria. Não bloqueia.'
+    } else {
+        Add-Result 'Sistema' 'Bloqueio de aplicações indesejadas' 'FALHA' 'Desligado. Segurança do Windows, Controlo de aplicações e browser, Proteção baseada em reputação.'
+    }
+} catch { Add-Result 'Sistema' 'Bloqueio de aplicações indesejadas' 'ATENÇÃO' 'Não foi possível ler.' }
+
+try {
     $fw = @(Get-NetFirewallProfile | Where-Object { -not $_.Enabled })
     if ($fw.Count) {
         Add-Result 'Sistema' 'Firewall do Windows' 'FALHA' ('Desligada nos perfis: ' + (($fw | ForEach-Object { $_.Name }) -join ', ') + '.')

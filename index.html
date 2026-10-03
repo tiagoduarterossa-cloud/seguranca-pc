@@ -139,6 +139,7 @@ var PHASES=[
   ['p2b','Passar a trabalhar numa conta padrão','Só depois de entrares na conta de administrador nova e confirmares que funciona. Se a tua conta for a única administradora e a passares a padrão, o PC fica sem administrador.'],
   ['p2c','Ligar as atualizações automáticas',''],
   ['p2d','Ativar o Acesso controlado a pastas','Segurança do Windows, Proteção contra vírus e ameaças, Gerir proteção contra ransomware.'],
+  ['p2h','Bloquear aplicações potencialmente indesejadas','Segurança do Windows, Controlo de aplicações e browser, Proteção baseada em reputação. Apanha instaladores com publicidade e falsos otimizadores.'],
   ['p2e','Pôr password na BIOS/UEFI','Escrita no envelope das chaves.'],
   ['p2f','Confirmar que o Secure Boot está ativo','Escreve msinfo32 no menu Iniciar e procura Estado do Arranque Seguro.'],
   ['p2g','Bloqueio automático do ecrã aos 2 minutos','']]},
@@ -192,7 +193,7 @@ var REVIEWS=[
 ];
 var LEVELS={tu:'Resolves tu',urgente:'Urgente',pro:'Chama um profissional'};
 // Nível a partir do qual cada passo é essencial. Sem entrada: essencial em todos os níveis.
-var ITEM_LEVEL={p1a:'m',p1f:'m',p2a:'m',p2b:'m',p2d:'m',p2e:'m',p3b:'m',p3c:'m',p5c:'m',p6b:'m',p6c:'m',p7a:'m',p7c:'m',p7g:'m',p3a:'a',p3j:'a',p4a:'a',p4b:'a',p4c:'a',p5d:'a',p6a:'a'};
+var ITEM_LEVEL={p1a:'m',p1f:'m',p2a:'m',p2b:'m',p2d:'m',p2h:'b',p2e:'m',p3b:'m',p3c:'m',p5c:'m',p6b:'m',p6c:'m',p7a:'m',p7c:'m',p7g:'m',p3a:'a',p3j:'a',p4a:'a',p4b:'a',p4c:'a',p5d:'a',p6a:'a'};
 var LV={b:0,m:1,a:2},LVNAME={b:'Baixo',m:'Médio',a:'Alto'};
 var NIVEIS=[
  {k:'b',quando:'PC pessoal, sem dados de clientes nem documentos sensíveis.',inclui:['Disco encriptado com BitLocker só com TPM, o que muitos PCs já trazem','Chave de recuperação impressa e guardada no cofre','Gestor de passwords e 2FA','Atualizações automáticas e Defender','Discos de backup encriptados com BitLocker To Go','Carta de emergência e envelope das chaves'],
@@ -611,10 +612,13 @@ var LAB=[
   'Apaga um ficheiro de Documentos e recupera-o.'],
   v:'Fizeste o teste de restauro que o plano pede todos os meses.'},
  {id:'l11',g:'Exercícios',t:'Alerta do Defender, sem perigo',s:[
-  'Em eicar.org há um ficheiro de teste que todos os antivírus tratam como vírus, mas que não faz nada.',
-  'Descarrega-o dentro da máquina virtual.',
+  'O EICAR é um ficheiro de teste que todos os antivírus tratam como vírus, mas que não faz nada. Só dentro da máquina virtual.',
+  'No Edge da máquina virtual, escreve o endereço direto: https://secure.eicar.org/eicar.com.txt',
+  'O Edge mostra uma linha de texto e ainda não acontece nada: o Defender só reage quando o ficheiro é gravado no disco.',
+  'Botão direito na página, Guardar como, Transferências, Guardar.',
+  'Segurança do Windows, Proteção contra vírus e ameaças, Histórico de proteção: aparece Ameaça bloqueada, Grave. Abre os detalhes e não carregues em Permitir nem Restaurar.',
   'Segue o guia O Windows Defender detetou uma ameaça.'],
-  v:'O Defender bloqueia o ficheiro e põe-no em quarentena. Ficas a conhecer o aviso antes de ele aparecer a sério.'},
+  v:'O Defender bloqueia o ficheiro. Ficas a conhecer o aviso e o histórico antes de aparecerem a sério.'},
  {id:'l12',g:'Exercícios',t:'Voltar ao início',s:[
   'Desliga a máquina virtual.',
   'Aplica o ponto de verificação Limpo.',
